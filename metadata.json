@@ -1,0 +1,7 @@
+{
+  "name": "Kinetic Portfolio & System Architect Admin",
+  "description": "High-performance Cyberpunk Minimalist portfolio with interactive 3D Kinetic Desktop anime figure and Admin Panel for project and newsletter management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

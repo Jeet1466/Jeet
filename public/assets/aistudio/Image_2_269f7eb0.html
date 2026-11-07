@@ -1,0 +1,547 @@
+<!DOCTYPE html><html class="dark scroll-smooth" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Nehal Patel - Professor. Engineer. Researcher.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700;800&amp;family=Outfit:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#1a1c1c",
+                        "on-surface-variant": "#c6c9ab",
+                        "on-primary": "#2c3400",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#b8d300",
+                        "surface-bright": "#383939",
+                        "outline-variant": "#454932",
+                        "inverse-on-surface": "#2f3131",
+                        "surface-container-highest": "#333535",
+                        "secondary-container": "#464747",
+                        "secondary-fixed-dim": "#c7c6c6",
+                        "surface-container-lowest": "#0d0f0f",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "outline": "#909378",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-primary-fixed": "#191e00",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#b8d300",
+                        "on-secondary-container": "#b5b5b5",
+                        "surface-container-low": "#1a1c1c",
+                        "on-surface": "#e2e2e2",
+                        "surface-container": "#1e2020",
+                        "hazard-line": "rgba(223, 255, 0, 0.2)",
+                        "background": "#121414",
+                        "inverse-primary": "#576500",
+                        "primary": "#ffffff",
+                        "tertiary": "#ffffff",
+                        "surface-dim": "#121414",
+                        "inverse-surface": "#e2e2e2",
+                        "telemetry-bg": "rgba(18, 20, 20, 0.7)",
+                        "primary-fixed": "#d2f000",
+                        "on-secondary": "#2f3031",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#e3e2e2",
+                        "carbon-black": "#121414",
+                        "tertiary-container": "#e3e2e2",
+                        "on-secondary-fixed-variant": "#464747",
+                        "on-tertiary-container": "#646464",
+                        "on-tertiary": "#2f3131",
+                        "on-primary-fixed-variant": "#414c00",
+                        "on-background": "#e2e2e2",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#333535",
+                        "on-primary-container": "#5d6b00",
+                        "glass-border": "rgba(255, 255, 255, 0.1)",
+                        "primary-container": "#d2f000",
+                        "surface": "#121414",
+                        "tertiary-fixed": "#e3e2e2",
+                        "surface-container-high": "#282a2a",
+                        "secondary": "#c7c6c6",
+                        "norris-yellow": "#dfff00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "telemetry-grid": "32px",
+                        "gutter": "24px",
+                        "margin-desktop": "64px",
+                        "unit": "8px",
+                        "margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg-mobile": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "technical-data": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "900" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.2", "letterSpacing": "0em", "fontWeight": "700" }],
+                        "headline-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg": ["80px", { "lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "900" }],
+                        "technical-data": ["14px", { "lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    },
+                    "backgroundImage": {
+                        'grid-pattern': 'linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)',
+                    },
+                    "backgroundSize": {
+                        'grid-sz': '32px 32px'
+                    },
+                    "animation": {
+                        'glitch': 'glitch 1s linear infinite',
+                        'blink': 'blink 1s step-end infinite',
+                    },
+                    "keyframes": {
+                        glitch: {
+                            '2%, 64%': { transform: 'translate(2px,0) skew(0deg)' },
+                            '4%, 60%': { transform: 'translate(-2px,0) skew(0deg)' },
+                            '62%': { transform: 'translate(0,0) skew(5deg)' },
+                        },
+                        blink: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #121414;
+            color: #e2e2e2;
+            overflow-x: hidden;
+        }
+        .bg-grid {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        .kinetic-hover {
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .kinetic-hover:hover {
+            transform: skewX(-2deg) translateY(-2px);
+            box-shadow: 2px 2px 0 0 #dfff00;
+        }
+        .glass-panel {
+            background-color: rgba(26, 28, 28, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .typewriter-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1em;
+            background-color: #dfff00;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+            margin-left: 4px;
+        }
+        
+        .hazard-border {
+            border-bottom: 1px solid rgba(223, 255, 0, 0.2);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0f0f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333535;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #dfff00;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}[type='text'],input:where(:not([type])),[type='email'],[type='url'],[type='password'],[type='number'],[type='date'],[type='datetime-local'],[type='month'],[type='search'],[type='tel'],[type='time'],[type='week'],[multiple],textarea,select{-webkit-appearance:none;appearance:none;background-color:#fff;border-color:#6b7280;border-width:1px;border-radius:0px;padding-top:0.5rem;padding-right:0.75rem;padding-bottom:0.5rem;padding-left:0.75rem;font-size:1rem;line-height:1.5rem;--tw-shadow:0 0 #0000;}[type='text']:focus, input:where(:not([type])):focus, [type='email']:focus, [type='url']:focus, [type='password']:focus, [type='number']:focus, [type='date']:focus, [type='datetime-local']:focus, [type='month']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus, [type='week']:focus, [multiple]:focus, textarea:focus, select:focus{outline:2px solid transparent;outline-offset:2px;--tw-ring-inset:var(--tw-empty,/*!*/ /*!*/);--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:#2563eb;--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);border-color:#2563eb}input::placeholder,textarea::placeholder{color:#6b7280;opacity:1}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-date-and-time-value{min-height:1.5em;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit,::-webkit-datetime-edit-year-field,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute-field,::-webkit-datetime-edit-second-field,::-webkit-datetime-edit-millisecond-field,::-webkit-datetime-edit-meridiem-field{padding-top:0;padding-bottom:0}select{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");background-position:right 0.5rem center;background-repeat:no-repeat;background-size:1.5em 1.5em;padding-right:2.5rem;print-color-adjust:exact}[multiple],[size]:where(select:not([size="1"])){background-image:initial;background-position:initial;background-repeat:unset;background-size:initial;padding-right:0.75rem;print-color-adjust:unset}[type='checkbox'],[type='radio']{-webkit-appearance:none;appearance:none;padding:0;print-color-adjust:exact;display:inline-block;vertical-align:middle;background-origin:border-box;-webkit-user-select:none;user-select:none;flex-shrink:0;height:1rem;width:1rem;color:#2563eb;background-color:#fff;border-color:#6b7280;border-width:1px;--tw-shadow:0 0 #0000}[type='checkbox']{border-radius:0px}[type='radio']{border-radius:100%}[type='checkbox']:focus,[type='radio']:focus{outline:2px solid transparent;outline-offset:2px;--tw-ring-inset:var(--tw-empty,/*!*/ /*!*/);--tw-ring-offset-width:2px;--tw-ring-offset-color:#fff;--tw-ring-color:#2563eb;--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}[type='checkbox']:checked,[type='radio']:checked{border-color:transparent;background-color:currentColor;background-size:100% 100%;background-position:center;background-repeat:no-repeat}[type='checkbox']:checked{background-image:url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");}@media (forced-colors: active) {[type='checkbox']:checked{-webkit-appearance:auto;appearance:auto}}[type='radio']:checked{background-image:url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");}@media (forced-colors: active) {[type='radio']:checked{-webkit-appearance:auto;appearance:auto}}[type='checkbox']:checked:hover,[type='checkbox']:checked:focus,[type='radio']:checked:hover,[type='radio']:checked:focus{border-color:transparent;background-color:currentColor}[type='checkbox']:indeterminate{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 8h8'/%3e%3c/svg%3e");border-color:transparent;background-color:currentColor;background-size:100% 100%;background-position:center;background-repeat:no-repeat;}@media (forced-colors: active) {[type='checkbox']:indeterminate{-webkit-appearance:auto;appearance:auto}}[type='checkbox']:indeterminate:hover,[type='checkbox']:indeterminate:focus{border-color:transparent;background-color:currentColor}[type='file']{background:unset;border-color:inherit;border-width:0;border-radius:0;padding:0;font-size:unset;line-height:inherit}[type='file']:focus{outline:1px solid ButtonText;outline:1px auto -webkit-focus-ring-color}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-0{bottom:0px}.left-0{left:0px}.right-0{right:0px}.right-1\/4{right:25%}.right-4{right:1rem}.top-0{top:0px}.top-1\/4{top:25%}.top-4{top:1rem}.z-0{z-index:0}.z-10{z-index:10}.z-20{z-index:20}.z-50{z-index:50}.m-4{margin:1rem}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-12{margin-bottom:3rem}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-10{margin-top:2.5rem}.mt-2{margin-top:0.5rem}.mt-auto{margin-top:auto}.line-clamp-2{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.aspect-\[3\/4\]{aspect-ratio:3/4}.h-1{height:0.25rem}.h-16{height:4rem}.h-2{height:0.5rem}.h-32{height:8rem}.h-48{height:12rem}.h-64{height:16rem}.h-96{height:24rem}.h-\[1px\]{height:1px}.h-\[200px\]{height:200px}.h-\[400px\]{height:400px}.h-auto{height:auto}.h-full{height:100%}.min-h-\[884px\]{min-height:884px}.min-h-\[921px\]{min-height:921px}.w-16{width:4rem}.w-2{width:0.5rem}.w-32{width:8rem}.w-4{width:1rem}.w-48{width:12rem}.w-64{width:16rem}.w-8{width:2rem}.w-96{width:24rem}.w-\[78\%\]{width:78%}.w-full{width:100%}.max-w-2xl{max-width:42rem}.max-w-\[1200px\]{max-width:1200px}.max-w-\[1440px\]{max-width:1440px}.max-w-lg{max-width:32rem}.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.animate-\[marquee_20s_linear_infinite\]{animation:marquee 20s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-\[spin_10s_linear_infinite\]{animation:spin 10s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-\[spin_15s_linear_infinite_reverse\]{animation:spin 15s linear infinite reverse}@keyframes spin{to{transform:rotate(360deg)}}.animate-\[spin_5s_linear_infinite\]{animation:spin 5s linear infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.auto-rows-\[300px\]{grid-auto-rows:300px}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-start{justify-content:flex-start}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-12{gap:3rem}.gap-16{gap:4rem}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.self-start{align-self:flex-start}.overflow-hidden{overflow:hidden}.scroll-smooth{scroll-behavior:smooth}.whitespace-nowrap{white-space:nowrap}.rounded-full{border-radius:0.75rem}.rounded-lg{border-radius:0.25rem}.rounded-sm{border-radius:0.125rem}.border{border-width:1px}.border-2{border-width:2px}.border-y{border-top-width:1px;border-bottom-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-l-2{border-left-width:2px}.border-l-4{border-left-width:4px}.border-r-2{border-right-width:2px}.border-t{border-top-width:1px}.border-t-2{border-top-width:2px}.border-dashed{border-style:dashed}.border-carbon-black\/20{border-color:rgb(18 20 20 / 0.2)}.border-glass-border{border-color:rgba(255, 255, 255, 0.1)}.border-hazard-line{border-color:rgba(223, 255, 0, 0.2)}.border-norris-yellow{--tw-border-opacity:1;border-color:rgb(223 255 0 / var(--tw-border-opacity, 1))}.border-norris-yellow\/20{border-color:rgb(223 255 0 / 0.2)}.border-norris-yellow\/30{border-color:rgb(223 255 0 / 0.3)}.border-norris-yellow\/40{border-color:rgb(223 255 0 / 0.4)}.border-norris-yellow\/60{border-color:rgb(223 255 0 / 0.6)}.border-surface-container-highest{--tw-border-opacity:1;border-color:rgb(51 53 53 / var(--tw-border-opacity, 1))}.border-l-norris-yellow{--tw-border-opacity:1;border-left-color:rgb(223 255 0 / var(--tw-border-opacity, 1))}.border-l-surface-container-highest{--tw-border-opacity:1;border-left-color:rgb(51 53 53 / var(--tw-border-opacity, 1))}.border-t-surface-container-highest{--tw-border-opacity:1;border-top-color:rgb(51 53 53 / var(--tw-border-opacity, 1))}.bg-carbon-black{--tw-bg-opacity:1;background-color:rgb(18 20 20 / var(--tw-bg-opacity, 1))}.bg-carbon-black\/50{background-color:rgb(18 20 20 / 0.5)}.bg-error{--tw-bg-opacity:1;background-color:rgb(255 180 171 / var(--tw-bg-opacity, 1))}.bg-norris-yellow{--tw-bg-opacity:1;background-color:rgb(223 255 0 / var(--tw-bg-opacity, 1))}.bg-norris-yellow\/10{background-color:rgb(223 255 0 / 0.1)}.bg-surface-container-highest{--tw-bg-opacity:1;background-color:rgb(51 53 53 / var(--tw-bg-opacity, 1))}.bg-surface-container-highest\/50{background-color:rgb(51 53 53 / 0.5)}.bg-surface-container-low{--tw-bg-opacity:1;background-color:rgb(26 28 28 / var(--tw-bg-opacity, 1))}.bg-surface-container-lowest{--tw-bg-opacity:1;background-color:rgb(13 15 15 / var(--tw-bg-opacity, 1))}.bg-surface-container-lowest\/50{background-color:rgb(13 15 15 / 0.5)}.bg-surface-container-lowest\/80{background-color:rgb(13 15 15 / 0.8)}.bg-surface-container\/50{background-color:rgb(30 32 32 / 0.5)}.bg-surface-variant{--tw-bg-opacity:1;background-color:rgb(51 53 53 / var(--tw-bg-opacity, 1))}.bg-white\/50{background-color:rgb(255 255 255 / 0.5)}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-t{background-image:linear-gradient(to top, var(--tw-gradient-stops))}.from-carbon-black{--tw-gradient-from:#121414 var(--tw-gradient-from-position);--tw-gradient-to:rgb(18 20 20 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-surface-container-highest\/30{--tw-gradient-from:rgb(51 53 53 / 0.3) var(--tw-gradient-from-position);--tw-gradient-to:rgb(51 53 53 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-surface-container-lowest\/90{--tw-gradient-from:rgb(13 15 15 / 0.9) var(--tw-gradient-from-position);--tw-gradient-to:rgb(13 15 15 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-transparent{--tw-gradient-from:transparent var(--tw-gradient-from-position);--tw-gradient-to:rgb(0 0 0 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-transparent{--tw-gradient-to:rgb(0 0 0 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), transparent var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-carbon-black{--tw-gradient-to:#121414 var(--tw-gradient-to-position)}.to-surface-container-lowest\/80{--tw-gradient-to:rgb(13 15 15 / 0.8) var(--tw-gradient-to-position)}.to-transparent{--tw-gradient-to:transparent var(--tw-gradient-to-position)}.bg-cover{background-size:cover}.bg-center{background-position:center}.object-cover{object-fit:cover}.object-center{object-position:center}.p-2{padding:0.5rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-8{padding-left:2rem;padding-right:2rem}.px-margin-mobile{padding-left:20px;padding-right:20px}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-24{padding-top:6rem;padding-bottom:6rem}.py-32{padding-top:8rem;padding-bottom:8rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pb-1{padding-bottom:0.25rem}.pb-12{padding-bottom:3rem}.pb-2{padding-bottom:0.5rem}.pb-8{padding-bottom:2rem}.pl-6{padding-left:1.5rem}.pt-16{padding-top:4rem}.pt-\[80px\]{padding-top:80px}.text-center{text-align:center}.font-body-md{font-family:Inter}.font-display-lg-mobile{font-family:Outfit}.font-headline-lg-mobile{font-family:Outfit}.font-label-caps{font-family:JetBrains Mono}.font-technical-data{font-family:JetBrains Mono}.text-\[10px\]{font-size:10px}.text-\[12px\]{font-size:12px}.text-\[14px\]{font-size:14px}.text-\[18px\]{font-size:18px}.text-\[24px\]{font-size:24px}.text-\[32px\]{font-size:32px}.text-\[40px\]{font-size:40px}.text-\[48px\]{font-size:48px}.text-display-lg-mobile{font-size:48px;line-height:1.1;letter-spacing:-0.02em;font-weight:900}.text-headline-lg-mobile{font-size:32px;line-height:1.2;letter-spacing:0em;font-weight:700}.text-label-caps{font-size:12px;line-height:1.0;letter-spacing:0.1em;font-weight:700}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-technical-data{font-size:14px;line-height:1.5;letter-spacing:0.05em;font-weight:500}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}.leading-\[0\.9\]{line-height:0.9}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-tighter{letter-spacing:-0.05em}.tracking-widest{letter-spacing:0.1em}.text-carbon-black{--tw-text-opacity:1;color:rgb(18 20 20 / var(--tw-text-opacity, 1))}.text-norris-yellow{--tw-text-opacity:1;color:rgb(223 255 0 / var(--tw-text-opacity, 1))}.text-on-surface{--tw-text-opacity:1;color:rgb(226 226 226 / var(--tw-text-opacity, 1))}.text-on-surface-variant{--tw-text-opacity:1;color:rgb(198 201 171 / var(--tw-text-opacity, 1))}.text-primary{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-0{opacity:0}.opacity-10{opacity:0.1}.opacity-20{opacity:0.2}.opacity-30{opacity:0.3}.opacity-40{opacity:0.4}.opacity-50{opacity:0.5}.opacity-90{opacity:0.9}.mix-blend-screen{mix-blend-mode:screen}.mix-blend-overlay{mix-blend-mode:overlay}.mix-blend-luminosity{mix-blend-mode:luminosity}.shadow-\[0_0_8px_\#dfff00\]{--tw-shadow:0 0 8px #dfff00;--tw-shadow-colored:0 0 8px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.blur-\[100px\]{--tw-blur:blur(100px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-sm{--tw-blur:blur(4px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.duration-500{transition-duration:500ms}.duration-700{transition-duration:700ms}.selection\:bg-norris-yellow *::selection{--tw-bg-opacity:1;background-color:rgb(223 255 0 / var(--tw-bg-opacity, 1))}.selection\:text-carbon-black *::selection{--tw-text-opacity:1;color:rgb(18 20 20 / var(--tw-text-opacity, 1))}.selection\:bg-norris-yellow::selection{--tw-bg-opacity:1;background-color:rgb(223 255 0 / var(--tw-bg-opacity, 1))}.selection\:text-carbon-black::selection{--tw-text-opacity:1;color:rgb(18 20 20 / var(--tw-text-opacity, 1))}.hover\:border-norris-yellow:hover{--tw-border-opacity:1;border-color:rgb(223 255 0 / var(--tw-border-opacity, 1))}.hover\:border-norris-yellow\/50:hover{border-color:rgb(223 255 0 / 0.5)}.hover\:border-t-norris-yellow:hover{--tw-border-opacity:1;border-top-color:rgb(223 255 0 / var(--tw-border-opacity, 1))}.hover\:bg-norris-yellow\/10:hover{background-color:rgb(223 255 0 / 0.1)}.hover\:text-norris-yellow:hover{--tw-text-opacity:1;color:rgb(223 255 0 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:-translate-y-4{--tw-translate-y:-1rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:border-norris-yellow{--tw-border-opacity:1;border-color:rgb(223 255 0 / var(--tw-border-opacity, 1))}.group:hover .group-hover\:text-norris-yellow{--tw-text-opacity:1;color:rgb(223 255 0 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-primary{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:opacity-100{opacity:1}.group:hover .group-hover\:opacity-40{opacity:0.4}.group:hover .group-hover\:opacity-50{opacity:0.5}.group:hover .group-hover\:opacity-60{opacity:0.6}@media (min-width: 768px){.md\:col-span-12{grid-column:span 12 / span 12}.md\:col-span-2{grid-column:span 2 / span 2}.md\:col-span-4{grid-column:span 4 / span 4}.md\:col-span-8{grid-column:span 8 / span 8}.md\:block{display:block}.md\:flex{display:flex}.md\:hidden{display:none}.md\:h-\[500px\]{height:500px}.md\:h-\[600px\]{height:600px}.md\:w-1\/2{width:50%}.md\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-end{align-items:flex-end}.md\:items-center{align-items:center}.md\:justify-center{justify-content:center}.md\:self-auto{align-self:auto}.md\:bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.md\:px-margin-desktop{padding-left:64px;padding-right:64px}.md\:font-display-lg{font-family:Outfit}.md\:font-headline-lg{font-family:Outfit}.md\:text-display-lg{font-size:80px;line-height:1.0;letter-spacing:-0.04em;font-weight:900}.md\:text-headline-lg{font-size:48px;line-height:1.1;letter-spacing:-0.02em;font-weight:700}}</style></head>
+<body class="bg-carbon-black font-body-md text-on-surface antialiased bg-grid relative selection:bg-norris-yellow selection:text-carbon-black flex flex-col" data-mode="connect">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 border-b border-glass-border glass-panel backdrop-blur-md px-margin-mobile md:px-margin-desktop py-4 flex justify-between items-center transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="font-display-lg-mobile text-[24px] text-norris-yellow tracking-tighter uppercase font-bold">SYSTEM_ARCHITECT_V1</div>
+</div>
+<ul class="hidden md:flex gap-8 font-technical-data text-technical-data uppercase tracking-widest text-on-surface-variant">
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Work</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Research</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Teaching</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Writing</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">About</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Learn</a></li>
+</ul>
+<div class="flex gap-4">
+<button class="bg-norris-yellow text-carbon-black font-label-caps text-[12px] py-2 px-6 rounded-sm kinetic-hover uppercase font-bold tracking-widest">
+            Contact
+        </button>
+<div class="md:hidden flex items-center">
+<span class="material-symbols-outlined text-norris-yellow">terminal</span>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 min-h-[884px] pt-[80px]" data-stitch-vh="min-h-[884px]===min-h-screen">
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex flex-col justify-center px-margin-mobile md:px-margin-desktop overflow-hidden border-b border-hazard-line">
+<!-- Background Overlay Elements -->
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
+<div class="absolute top-1/4 right-1/4 w-96 h-96 bg-norris-yellow/10 blur-[100px] rounded-full mix-blend-screen"></div>
+<!-- Using placeholder logic for abstract background element -->
+<div class="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-overlay" data-alt="Abstract cyber-technical schematic background. Fine white grid lines and geometric schematics overlay a deep carbon black canvas. Faint neon yellow data nodes glow sporadically. High tech, precision engineering aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDsumTHzus9fyhE9EH6jLcrf1OvcH2r8S6ETVrTvnf0O4wugcsY_eqh8fvjccQZbvEc1ocwSXLOctX7Wwwj2u3nFxtoTqYLUydL_NE1JPj6_2QuG1b6gjS54yXnh5kfrtT42XmrFspopWQp6Cfa4qL7TtkhuIdBsJNQ-O0a3lCtnKeSJn0HP_Q6oiPxbJphztyn430veplmwLKQoWe93zKAS3U32qaIqwZWv-nXGo9Q-SBq9k5FR_tZ')"></div>
+</div>
+<div class="relative z-10 max-w-[1200px] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+<div class="md:col-span-8 flex flex-col items-start">
+<!-- Status Indicator -->
+<div class="inline-flex items-center gap-2 px-3 py-1 mb-8 border border-glass-border rounded-full bg-surface-container/50 backdrop-blur-sm">
+<div class="w-2 h-2 rounded-full bg-norris-yellow animate-pulse shadow-[0_0_8px_#dfff00]"></div>
+<span class="font-technical-data text-[10px] text-on-surface-variant uppercase tracking-widest">Live System Status: Optimal</span>
+</div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary uppercase leading-[0.9] tracking-tighter mb-6">Jeet Patel<br>
+<span class="text-norris-yellow opacity-90 inline-block" id="typewriter-text"></span><span class="typewriter-cursor"></span>
+</h1>
+<div class="max-w-2xl">
+<!-- Data Document Injection -->
+<div class="font-body-md text-on-surface-variant text-[18px] leading-relaxed border-l-2 border-hazard-line pl-6 py-2 bg-gradient-to-r from-surface-container-highest/30 to-transparent">
+                            {{DATA:DOCUMENT:DOCUMENT_8}}
+                        </div>
+</div>
+<div class="mt-10 flex flex-wrap gap-4">
+<button class="bg-norris-yellow text-carbon-black font-label-caps text-label-caps py-4 px-8 rounded-sm kinetic-hover uppercase tracking-widest font-bold">
+                            Initialize Sequence
+                        </button>
+<button class="border border-norris-yellow text-norris-yellow font-label-caps text-label-caps py-4 px-8 rounded-sm hover:bg-norris-yellow/10 transition-colors uppercase tracking-widest">
+                            View Telemetry
+                        </button>
+</div>
+</div>
+<div class="md:col-span-4 hidden md:block relative">
+<!-- Abstract Data Visual -->
+<div class="glass-panel p-6 rounded-lg relative overflow-hidden aspect-[3/4] flex flex-col justify-between group">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent to-surface-container-lowest/80 z-10"></div>
+<img class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity duration-500 z-0" data-alt="A highly stylized, vertical data visualization dashboard. Glowing yellow lines map out complex network architectures on a sleek, dark glass screen. Small numerical readouts in bright white dot the intersections. The overall feel is that of high-end F1 telemetry software or a cyberpunk hacker's interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCc0mvfcGXprFmErYi6vr5kptKlbAnMhADMZNXU8LSSV1vGHSE2Gp4e9MlPUD3-8SfHRx4HiZqduuPLbwIaAIz1ZO30ZKIBOoV6kIOLCV4khDVoYneQdH4rcrREo5BZPF_zDWhlfZmuRJfskErvdqKydwzIXJ4UBrjRORRqXJxBMUMQ57s6Bem3Fwi7Wvx4wr4zdS9JrLU_2pTmPproqmoPIL2klLvnXwMc0aPVbWKhRaSL_cqoHv_i">
+<div class="relative z-20 font-technical-data text-[10px] text-norris-yellow mb-4 flex justify-between border-b border-glass-border pb-2">
+<span>[ NODE_01 ]</span>
+<span>ACTIVE</span>
+</div>
+<div class="relative z-20 mt-auto">
+<div class="font-label-caps text-on-surface text-[24px] mb-1">DATA_STREAM_A</div>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-norris-yellow w-[78%] relative">
+<div class="absolute right-0 top-0 bottom-0 w-4 bg-white/50 blur-sm"></div>
+</div>
+</div>
+<div class="flex justify-between mt-2 font-technical-data text-[10px] text-on-surface-variant">
+<span>THROUGHPUT</span>
+<span class="text-norris-yellow">78%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Scrolling Ticker -->
+<div class="absolute bottom-0 left-0 w-full bg-norris-yellow text-carbon-black py-1 overflow-hidden border-t border-b border-carbon-black/20 z-20">
+<div class="whitespace-nowrap animate-[marquee_20s_linear_infinite] flex gap-12 font-technical-data text-[10px] font-bold tracking-widest uppercase">
+<span>SYS_CORE_TEMP: 42°C</span>
+<span>//</span>
+<span>DATA_NODES: 1,492 ONLINE</span>
+<span>//</span>
+<span>LATENCY: 14MS</span>
+<span>//</span>
+<span>UPTIME: 99.99%</span>
+<span>//</span>
+<span>SYS_CORE_TEMP: 42°C</span>
+<span>//</span>
+<span>DATA_NODES: 1,492 ONLINE</span>
+<span>//</span>
+<span>LATENCY: 14MS</span>
+<span>//</span>
+<span>UPTIME: 99.99%</span>
+</div>
+</div>
+</section>
+<!-- Section 1: Built for real users -->
+<section class="py-24 px-margin-mobile md:px-margin-desktop relative">
+<div class="max-w-[1440px] mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+<div>
+<div class="font-technical-data text-[12px] text-norris-yellow tracking-widest uppercase mb-2">[ 01_PERFORMANCE_MODULES ]</div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary uppercase">Built for real users</h2>
+</div>
+<a class="font-label-caps text-[12px] text-on-surface-variant hover:text-norris-yellow border-b border-glass-border hover:border-norris-yellow pb-1 transition-all flex items-center gap-2 self-start md:self-auto" href="#">
+                        VIEW_ALL_PROJECTS <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+<!-- Bento Grid for Projects -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[300px]">
+<!-- Project 1: SDJIC (Spans 8 cols) -->
+<div class="md:col-span-8 glass-panel rounded-lg p-6 flex flex-col justify-between group relative overflow-hidden cursor-pointer hover:border-norris-yellow/50 transition-colors border-t-2 border-t-surface-container-highest hover:border-t-norris-yellow">
+<div class="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 to-transparent z-10 pointer-events-none"></div>
+<img class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 group-hover:scale-105 transition-all duration-700 z-0 mix-blend-luminosity" data-alt="A sleek, modern web interface displayed on a dark angled screen mockup. The UI features crisp typography, stark contrasts between dark grey panels and vibrant yellow data charts. The design looks highly professional, focused on data analytics for a corporate user base." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlXgT3pYZXG__cy3XGNVlXzeP2_S1zZw3PKPKcd7qVu2CELl4oUvq2PDjFVKExNENPGJ5EytLi7Zkos_k22CVs6L43lkStsfWbJdgVzmZ8I2neR1xcffv-194D_jSvJtY6GRMwe3z9FZKGkH_Sz2bHo3M-49jCbbYKDKq7juu3FLwC5MDSvZlVWLUKtsZ9UOIgZ97OnhoEKZBmGxtRiWtEPlGC7y4R2ZmEajS74G9XeZNLzC_RXS_y">
+<div class="relative z-20 flex justify-between items-start">
+<div class="inline-block px-3 py-1 border border-glass-border rounded-sm font-label-caps text-[10px] text-norris-yellow bg-carbon-black/50 backdrop-blur-md">UI/UX _ FULLSTACK</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-norris-yellow transition-colors bg-carbon-black/50 p-2 rounded-full backdrop-blur-md">open_in_new</span>
+</div>
+<div class="relative z-20">
+<h3 class="font-headline-lg-mobile text-[32px] font-bold text-primary mb-2 group-hover:text-norris-yellow transition-colors">SDJIC Platform</h3>
+<p class="font-body-md text-on-surface-variant max-w-md text-sm mb-4">Enterprise-grade interface architecture. Streamlined complex workflows into intuitive, high-performance dashboards for real-time decision making.</p>
+<div class="flex gap-2">
+<span class="text-[10px] font-technical-data border border-glass-border px-2 py-1 text-on-surface-variant">REACT</span>
+<span class="text-[10px] font-technical-data border border-glass-border px-2 py-1 text-on-surface-variant">NODE.JS</span>
+<span class="text-[10px] font-technical-data border border-glass-border px-2 py-1 text-on-surface-variant">POSTGRES</span>
+</div>
+</div>
+<!-- HUD accent -->
+<div class="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-norris-yellow/30 group-hover:border-norris-yellow transition-colors m-4"></div>
+</div>
+<!-- Project 2: PO Order System (Spans 4 cols) -->
+<div class="md:col-span-4 glass-panel rounded-lg p-6 flex flex-col justify-between group relative overflow-hidden cursor-pointer hover:border-norris-yellow/50 transition-colors">
+<div class="absolute inset-0 bg-surface-container-lowest/80 z-10 pointer-events-none"></div>
+<img class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-40 group-hover:scale-105 transition-all duration-700 z-0" data-alt="Abstract representation of logistics and ordering systems. A grid of geometric crates or digital packets glowing in a dark warehouse setting. Thin laser lines connect the nodes, suggesting speed and efficiency in supply chain management." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRdRXTR3irMm1F4HWsURh_TuJcTld7TmrSq4vZVSc7MvluJsW_dYtaMpPekTbMjrQv4vxh4SpvkWuJW5NfZpFXn0xBzrpHVJUGZd8D4fDcqRW_cwWhQfkQta1HLq5p4FkMj0zKIgxmRsMK61860RgqwKkNhCIMKa7CR4WLatLnIKjFc2tj1oywaFPK8MDgufaoHeNCfEJjvRn4HRtUS6jQBWy980fsFxBfAMtIkPApMy_HqpwYSOoj">
+<div class="relative z-20 flex justify-between items-start">
+<div class="inline-block px-3 py-1 border border-glass-border rounded-sm font-label-caps text-[10px] text-primary bg-carbon-black/50 backdrop-blur-md">SYSTEMS _ BACKEND</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">terminal</span>
+</div>
+<div class="relative z-20 mt-auto">
+<h3 class="font-headline-lg-mobile text-[24px] font-bold text-primary mb-2">PO Order System</h3>
+<p class="font-body-md text-on-surface-variant text-sm mb-4 line-clamp-2">High-throughput transactional engine ensuring zero-latency order processing.</p>
+</div>
+</div>
+<!-- Project 3: UrbanGate (Spans 12 cols, shorter height) -->
+<div class="md:col-span-12 glass-panel rounded-lg p-6 flex flex-col md:flex-row items-start md:items-center justify-between group relative overflow-hidden cursor-pointer hover:border-norris-yellow/50 transition-colors h-[200px]">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 to-transparent z-10 pointer-events-none md:bg-gradient-to-r"></div>
+<img class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-all duration-700 z-0 object-center" data-alt="A futuristic city map rendered in glowing yellow and white lines against a black background. Represents urban planning and digital gateway interfaces. The map looks like a live radar or navigation display from a sci-fi cockpit." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy9y5m8CiCAejQZSLnfEk5EEpLAbBSmUsHNJ6kpDVWaGU40aljWRvZdKfrPCiEBMYE_LYBdH2uef7e-ECEjg-c5Qyc3v7KfdHuolbvzDxLmov3cSug6xQDqgtQOl3kazyWgGvGEF8aFPmDPslWmFwKmxmfrLGsxfNEk_B4S_PF0GN_2MgsWM_VqjPJImOFs3YrOWpB0vS7fRl0clQjt7tg2irVFp_vJbQP3tTS9BjF6hUwm1TnWRD2">
+<div class="relative z-20 flex flex-col h-full justify-between md:justify-center md:w-1/2">
+<div class="inline-block px-3 py-1 border border-glass-border rounded-sm font-label-caps text-[10px] text-on-surface-variant mb-4 self-start bg-carbon-black/50">INFRASTRUCTURE</div>
+<div>
+<h3 class="font-headline-lg-mobile text-[32px] font-bold text-primary mb-2 group-hover:text-norris-yellow transition-colors">UrbanGate</h3>
+<p class="font-body-md text-on-surface-variant text-sm max-w-lg">Scalable microservices architecture supporting city-wide data aggregation and civic engagement portals.</p>
+</div>
+</div>
+<div class="relative z-20 hidden md:flex items-center justify-center w-32 h-32 rounded-full border border-glass-border group-hover:border-norris-yellow transition-colors bg-surface-container-highest/50 backdrop-blur-md">
+<span class="font-technical-data text-[12px] text-primary group-hover:text-norris-yellow flex flex-col items-center">
+<span class="material-symbols-outlined text-[32px] mb-1">analytics</span>
+                                 EXPLORE
+                             </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Identity Blocks -->
+<section class="py-24 px-margin-mobile md:px-margin-desktop bg-surface-container-low border-y border-hazard-line relative">
+<div class="max-w-[1440px] mx-auto">
+<div class="font-technical-data text-[12px] text-norris-yellow tracking-widest uppercase mb-12 text-center">[ 02_CORE_VECTORS ]</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-1 h-auto md:h-[500px]">
+<!-- Block 1: Engineering -->
+<div class="group relative bg-carbon-black p-8 flex flex-col justify-end overflow-hidden border border-glass-border hover:border-norris-yellow transition-colors duration-300">
+<!-- Default State -->
+<div class="relative z-20 transform transition-transform duration-500 group-hover:-translate-y-4">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant mb-6 group-hover:text-norris-yellow transition-colors">engineering</span>
+<h3 class="font-display-lg-mobile text-[40px] text-primary uppercase font-bold leading-none">Engineering</h3>
+</div>
+<!-- Hover Overlay -->
+<div class="absolute inset-0 bg-norris-yellow/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-start p-8 pt-16">
+<ul class="font-technical-data text-[12px] text-primary space-y-4">
+<li class="flex justify-between border-b border-glass-border pb-1"><span>SYSTEM_ARCH</span> <span class="text-norris-yellow">95%</span></li>
+<li class="flex justify-between border-b border-glass-border pb-1"><span>FULLSTACK_DEV</span> <span class="text-norris-yellow">92%</span></li>
+<li class="flex justify-between border-b border-glass-border pb-1"><span>CLOUD_INFRA</span> <span class="text-norris-yellow">88%</span></li>
+</ul>
+</div>
+<div class="absolute top-4 right-4 font-technical-data text-[10px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity z-20">V_1.0</div>
+</div>
+<!-- Block 2: Teaching -->
+<div class="group relative bg-carbon-black p-8 flex flex-col justify-end overflow-hidden border border-glass-border hover:border-norris-yellow transition-colors duration-300">
+<div class="relative z-20 transform transition-transform duration-500 group-hover:-translate-y-4">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant mb-6 group-hover:text-norris-yellow transition-colors">school</span>
+<h3 class="font-display-lg-mobile text-[40px] text-primary uppercase font-bold leading-none">Teaching</h3>
+</div>
+<div class="absolute inset-0 bg-norris-yellow/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-start p-8 pt-16">
+<p class="font-body-md text-sm text-primary mb-4 leading-relaxed">Translating complex technical paradigms into digestible curriculum. Mentoring the next generation of engineers through hands-on, project-based learning.</p>
+<div class="mt-auto">
+<span class="inline-block border border-norris-yellow text-norris-yellow font-technical-data text-[10px] px-2 py-1">MENTORSHIP_MODE: ON</span>
+</div>
+</div>
+<div class="absolute top-4 right-4 font-technical-data text-[10px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity z-20">V_2.0</div>
+</div>
+<!-- Block 3: Research -->
+<div class="group relative bg-carbon-black p-8 flex flex-col justify-end overflow-hidden border border-glass-border hover:border-norris-yellow transition-colors duration-300">
+<div class="relative z-20 transform transition-transform duration-500 group-hover:-translate-y-4">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant mb-6 group-hover:text-norris-yellow transition-colors">biotech</span>
+<h3 class="font-display-lg-mobile text-[40px] text-primary uppercase font-bold leading-none">Research</h3>
+</div>
+<div class="absolute inset-0 bg-norris-yellow/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-start p-8 pt-16">
+<ul class="font-technical-data text-[12px] text-primary space-y-4">
+<li class="flex justify-between border-b border-glass-border pb-1"><span>HCI_STUDIES</span> <span class="text-norris-yellow">ACTIVE</span></li>
+<li class="flex justify-between border-b border-glass-border pb-1"><span>MACHINE_LEARNING</span> <span class="text-norris-yellow">ACTIVE</span></li>
+<li class="flex justify-between border-b border-glass-border pb-1"><span>DATA_VIZ</span> <span class="text-norris-yellow">PENDING</span></li>
+</ul>
+</div>
+<div class="absolute top-4 right-4 font-technical-data text-[10px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity z-20">V_3.0</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Applied AI -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop relative overflow-hidden">
+<!-- Schematic Background -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-10 mix-blend-screen" data-alt="A highly detailed, intricate technical schematic of a neural network or AI brain. Rendered in thin glowing lines (white and yellow) on a deep charcoal background. Looks like an engineering blueprint for advanced artificial intelligence, with mathematical annotations and nodes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdy68HRnMHVcc9a61u0x0nfizr_gaj91XeBMRXHwMQYlTjvPgaSp-QvMmW2UdGm5g0aUi8CEbykCBldNMtW7t45szv_QpHl8BMYIEEcu0-FmUz3Dp2kc2iGvQ2qw7cBPvfjBxp9psSJg7CeaA-OT36r4OB9y4t-DKzsVzwKvt1_z4rKn3ag3LIEaQC9l3VW3zC4xxx4WcMOpPH3ikgZ71l8Ra9p36WHyVh7R_cKho45KnHfa_EmJAE">
+<div class="absolute inset-0 bg-gradient-to-t from-carbon-black via-transparent to-carbon-black"></div>
+</div>
+<div class="relative z-10 max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div>
+<div class="font-technical-data text-[12px] text-norris-yellow tracking-widest uppercase mb-4 flex items-center gap-2">
+<span class="w-8 h-[1px] bg-norris-yellow"></span>
+                        [ 03_RESEARCH_FOCUS ]
+                    </div>
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary uppercase leading-tight mb-8">
+                        Applied<br>Artificial<br><span class="text-on-surface-variant">Intelligence</span>
+</h2>
+<p class="font-body-md text-on-surface-variant text-lg mb-8 max-w-md border-l-2 border-glass-border pl-6">
+                        Investigating the intersection of human-computer interaction and generative models. Focused on creating ethical, high-utility tools for specialized engineering workflows.
+                    </p>
+<div class="flex flex-col gap-4 max-w-sm">
+<div class="glass-panel p-4 flex justify-between items-center border-l-4 border-l-norris-yellow">
+<span class="font-label-caps text-sm text-primary">NLP_INTEGRATION</span>
+<span class="material-symbols-outlined text-norris-yellow text-[18px]">check_circle</span>
+</div>
+<div class="glass-panel p-4 flex justify-between items-center border-l-4 border-l-surface-container-highest">
+<span class="font-label-caps text-sm text-on-surface-variant">PREDICTIVE_MODELS</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">sync</span>
+</div>
+</div>
+</div>
+<div class="relative h-[400px] md:h-[600px] border border-glass-border rounded-lg bg-surface-container-lowest/50 backdrop-blur-sm p-4 flex flex-col">
+<div class="flex justify-between items-center border-b border-glass-border pb-2 mb-4">
+<span class="font-technical-data text-[10px] text-on-surface-variant">SIMULATION_ENVIRONMENT</span>
+<span class="flex gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="w-2 h-2 rounded-full bg-norris-yellow"></span>
+<span class="w-2 h-2 rounded-full bg-surface-variant"></span>
+</span>
+</div>
+<!-- Abstract Visualization Area (Could be replaced by WebGL later) -->
+<div class="flex-1 relative overflow-hidden border border-surface-container-highest flex items-center justify-center">
+<div class="absolute w-64 h-64 border border-norris-yellow/20 rounded-full animate-[spin_10s_linear_infinite]"></div>
+<div class="absolute w-48 h-48 border border-norris-yellow/40 rounded-full animate-[spin_15s_linear_infinite_reverse]"></div>
+<div class="absolute w-32 h-32 border-2 border-norris-yellow/60 rounded-full animate-[spin_5s_linear_infinite] border-dashed"></div>
+<div class="text-norris-yellow font-technical-data text-xs text-center z-10 bg-carbon-black/50 p-2 backdrop-blur-md">
+                            MODEL_TRAINING<br>
+                            EPOCH: 4592<br>
+                            LOSS: 0.042
+                        </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Comprehensive Footer -->
+<footer class="bg-surface-container-lowest border-t border-hazard-line relative bottom-0 w-full z-10 pt-16 pb-8">
+<div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 border-b border-glass-border pb-12">
+<div class="md:col-span-2">
+<div class="font-display-lg-mobile text-[24px] text-norris-yellow tracking-tighter uppercase font-bold mb-4">SYSTEM_ARCHITECT_V1</div>
+<p class="font-body-md text-on-surface-variant text-sm max-w-md mb-6">Building high-performance interfaces and architecting scalable systems. Bridging the gap between human needs and technical capabilities.</p>
+<div class="inline-flex items-center gap-2 px-3 py-1 border border-glass-border rounded-full bg-surface-container/50 backdrop-blur-sm">
+<div class="w-2 h-2 rounded-full bg-norris-yellow animate-pulse shadow-[0_0_8px_#dfff00]"></div>
+<span class="font-technical-data text-[10px] text-on-surface-variant uppercase tracking-widest">Live System Status: Optimal</span>
+</div>
+</div>
+<div>
+<h4 class="font-technical-data text-[12px] text-primary uppercase tracking-widest mb-6">Directory</h4>
+<ul class="font-technical-data text-[12px] text-on-surface-variant space-y-3 uppercase tracking-widest">
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Work</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Research</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Teaching</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Writing</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">About</a></li>
+<li><a class="hover:text-norris-yellow transition-colors" href="#">Learn</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-technical-data text-[12px] text-primary uppercase tracking-widest mb-6">Network</h4>
+<ul class="font-technical-data text-[12px] text-on-surface-variant space-y-3 uppercase tracking-widest">
+<li><a class="hover:text-norris-yellow transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-[14px]">code</span> GitHub</a></li>
+<li><a class="hover:text-norris-yellow transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-[14px]">work</span> Upwork</a></li>
+<li><a class="hover:text-norris-yellow transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-[14px]">link</span> LinkedIn</a></li>
+<li><a class="hover:text-norris-yellow transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-[14px]">alternate_email</span> Twitter</a></li>
+</ul>
+</div>
+</div>
+<div class="flex flex-col md:flex-row justify-between items-center gap-4 font-technical-data text-[10px] uppercase text-on-surface-variant opacity-50 tracking-widest">
+<div>
+                © 2024 SYSTEM_CORE. ALL_RIGHTS_RESERVED. LATENCY: 14MS. BUILD: 0XB4F2
+            </div>
+<div class="flex gap-6">
+<a class="hover:text-norris-yellow transition-colors" href="#">Privacy_Protocol</a>
+<a class="hover:text-norris-yellow transition-colors" href="#">Terms_Of_Service</a>
+<a class="hover:text-norris-yellow transition-colors" href="#">Source_Code</a>
+</div>
+</div>
+</div>
+</footer>
+</main>
+<script>
+        // Simple Typewriter Effect for Hero
+        const texts = ["Professor.", "Engineer.", "Researcher.", "Architect."];
+        let count = 0;
+        let index = 0;
+        let currentText = '';
+        let letter = '';
+        let isDeleting = false;
+        const typeSpeed = 100;
+        const deleteSpeed = 50;
+        const delayBetweenWords = 2000;
+
+        function type() {
+            if (count === texts.length) {
+                count = 0;
+            }
+            currentText = texts[count];
+
+            if (isDeleting) {
+                letter = currentText.slice(0, --index);
+            } else {
+                letter = currentText.slice(0, ++index);
+            }
+
+            document.getElementById('typewriter-text').textContent = letter;
+
+            let typeDelay = isDeleting ? deleteSpeed : typeSpeed;
+
+            if (!isDeleting && letter.length === currentText.length) {
+                typeDelay = delayBetweenWords;
+                isDeleting = true;
+            } else if (isDeleting && letter.length === 0) {
+                isDeleting = false;
+                count++;
+                typeDelay = 500; // brief pause before next word
+            }
+
+            setTimeout(type, typeDelay);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(type, 1000);
+        });
+    </script>
+</body></html>
