@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../data/store';
 import { KineticDesktop3D } from './KineticDesktop3D';
 import { ArrowDown } from 'lucide-react';
-import { smoothDampWithSpeedLimit } from '../utils/math';
+import { smoothDampWithSpeedLimit, calculateScrollProgress } from '../utils/math';
 
 export const KineticScrollHero: React.FC = () => {
   const { config } = useApp();
+  const heroTrackRef = useRef<HTMLDivElement>(null);
 
   // Progress: 0.0 (Wide 3D Desktop Stage) -> 1.0 (Zoomed into Monitor / Portfolio Screen)
   const [visualProgress, setVisualProgress] = useState(0);
@@ -45,8 +46,9 @@ export const KineticScrollHero: React.FC = () => {
 
   // SPEED-LIMITED ANIMATION LOOP:
   // Guarantees that even if the user scrolls very fast or flicks their wheel,
-  // the visual transition moves at a capped maximum rate (1.1 / sec, ~0.9s total)
-  // so the user ALWAYS sees the whole, complete cinematic zoom transition!
+  // the visual transition moves at a capped maximum rate (1.2 / sec, ~0.85s total)
+  // RESPONSIVE ANIMATION LOOP:
+  // Smoothly drives visual camera zoom in direct synchronization with user scroll
   useEffect(() => {
     let animId: number;
     let lastTime = performance.now();
@@ -58,10 +60,9 @@ export const KineticScrollHero: React.FC = () => {
       const current = visualProgressRef.current;
       const target = targetProgressRef.current;
 
-      if (Math.abs(current - target) > 0.002) {
-        // Enforce smooth exponential damping with strict speed limit
-        // Max rate = 1.1 progress/second => full zoom takes at minimum ~0.9 seconds
-        const next = smoothDampWithSpeedLimit(current, target, 7.5, 1.15, dt);
+      if (Math.abs(current - target) > 0.001) {
+        // Fast, buttery smooth damping (12.0) with a generous max speed limit (3.5/s)
+        const next = smoothDampWithSpeedLimit(current, target, 12.0, 3.5, dt);
         visualProgressRef.current = next;
         setVisualProgress(next);
         isTransitioningRef.current = true;
@@ -85,46 +86,23 @@ export const KineticScrollHero: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  // Wheel listener:
-  // When at top of page (scrollY <= 5):
-  // - If at 3D desktop stage and user scrolls down: trigger full dive into screen!
-  // - If inside monitor screen, scrollY === 0, and user scrolls up: return to 3D desktop!
-  // When scrolled down into the portfolio, standard native wheel scrolling occurs with zero interference.
+  // Natural Page Scroll Listener:
+  // As the user scrolls down through the 220vh track, camera dives smoothly into the center screen!
   useEffect(() => {
-    let lastWheelTime = 0;
-
-    const onWheel = (e: WheelEvent) => {
-      const scrollY = window.scrollY;
-      const current = visualProgressRef.current;
-      const now = performance.now();
-
-      // At top of page:
-      if (scrollY <= 5) {
-        // 1. On 3D stage and scrolling down -> Trigger cinematic zoom to screen
-        if (current < 0.95 && e.deltaY > 15) {
-          e.preventDefault();
-          if (now - lastWheelTime > 80) {
-            targetProgressRef.current = 1.0;
-            lastWheelTime = now;
-          }
-        }
-        // 2. Inside monitor screen, at scroll top, and scrolling UP -> Return to 3D stage
-        else if (current > 0.05 && e.deltaY < -15) {
-          e.preventDefault();
-          if (now - lastWheelTime > 80) {
-            targetProgressRef.current = 0.0;
-            lastWheelTime = now;
-          }
-        }
-        // 3. During active transition, prevent native scroll fighting
-        else if (isTransitioningRef.current && (current < 0.95 || (current > 0.05 && e.deltaY < 0))) {
-          e.preventDefault();
-        }
-      }
+    const onScroll = () => {
+      const track = heroTrackRef.current;
+      if (!track) return;
+      const rect = track.getBoundingClientRect();
+      const scrolledDistance = -rect.top;
+      const trackHeight = track.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      const progress = calculateScrollProgress(scrolledDistance, trackHeight, viewportHeight);
+      targetProgressRef.current = progress;
     };
 
-    window.addEventListener('wheel', onWheel, { passive: false });
-    return () => window.removeEventListener('wheel', onWheel);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   // Touch & Keyboard handlers
@@ -139,16 +117,15 @@ export const KineticScrollHero: React.FC = () => {
       const touchEndY = e.changedTouches[0].clientY;
       const deltaY = touchStartY - touchEndY;
       const scrollY = window.scrollY;
-      const current = visualProgressRef.current;
 
-      if (scrollY <= 5) {
-        // Swiping up (scrolling down)
-        if (deltaY > 40 && current < 0.95) {
-          targetProgressRef.current = 1.0;
-        }
-        // Swiping down (scrolling up)
-        else if (deltaY < -40 && current > 0.05) {
-          targetProgressRef.current = 0.0;
+      if (scrollY <= 10) {
+        // Swiping up (scrolling down into monitor)
+        if (deltaY > 35) {
+          const track = heroTrackRef.current;
+          if (track) {
+            const targetY = track.offsetTop + track.offsetHeight - window.innerHeight;
+            window.scrollTo({ top: targetY, behavior: 'smooth' });
+          }
         }
       }
     };
@@ -157,13 +134,17 @@ export const KineticScrollHero: React.FC = () => {
       const scrollY = window.scrollY;
       const current = visualProgressRef.current;
 
-      if (scrollY <= 5) {
+      if (scrollY <= 10) {
         if ((e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') && current < 0.95) {
           e.preventDefault();
-          targetProgressRef.current = 1.0;
+          const track = heroTrackRef.current;
+          if (track) {
+            const targetY = track.offsetTop + track.offsetHeight - window.innerHeight;
+            window.scrollTo({ top: targetY, behavior: 'smooth' });
+          }
         } else if ((e.key === 'ArrowUp' || e.key === 'PageUp') && current > 0.05) {
           e.preventDefault();
-          targetProgressRef.current = 0.0;
+          returnTo3D();
         }
       }
     };
@@ -188,13 +169,13 @@ export const KineticScrollHero: React.FC = () => {
   const isInsideScreen = visualProgress >= 0.82;
 
   return (
-    <div className="relative w-full">
+    <div ref={heroTrackRef} className="relative w-full h-[220vh]">
       {/* ======================================================== */}
-      {/* 1. 100vh FULLSCREEN 3D KINETIC STAGE & MONITOR PORTAL */}
-      {/* Zero 110vh dead space! Directly flows into the portfolio. */}
+      {/* 1. STICKY FULLSCREEN 3D KINETIC STAGE & MONITOR PORTAL */}
+      {/* Scrolling through the 220vh track dives the 3D camera into the monitor! */}
       {/* ======================================================== */}
-      <div className="relative w-full h-screen overflow-hidden bg-[#0a0c0c]">
-        {/* Three.js Scene: Anime figure typing, camera zoom driven by visualProgress */}
+      <div className="sticky top-0 w-full h-screen overflow-hidden bg-[#0a0c0c]">
+        {/* Three.js Scene: 3D Coder Room Battlestation, camera zoom driven by visualProgress */}
         <KineticDesktop3D
           className="w-full h-full"
           scrollProgress={visualProgress}
@@ -208,13 +189,6 @@ export const KineticScrollHero: React.FC = () => {
         >
           {/* Top Stage Header */}
           <div className="pt-28 sm:pt-36 md:pt-54 max-w-xl">
-            {/* <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 border border-white/10 rounded-full bg-[#121414]/85 backdrop-blur-md">
-              <div className="w-2 h-2 rounded-full bg-[#dfff00] animate-pulse shadow-[0_0_8px_#dfff00]"></div>
-              <span className="font-technical text-[10px] md:text-[11px] text-[#dfff00] uppercase tracking-widest font-bold">
-                KINETIC_DESKTOP_V5 // ANIME_RIG_STAGE
-              </span>
-            </div> */}
-
             <h1 className="font-display text-[38px] sm:text-[54px] md:text-[68px] text-white uppercase font-black leading-[0.92] tracking-tighter drop-shadow-2xl">
               {config.ownerName || 'Jeet Patel'}
               <br />
@@ -223,6 +197,25 @@ export const KineticScrollHero: React.FC = () => {
               </span>
               <span className="typewriter-cursor"></span>
             </h1>
+
+            {/* Direct Enter Portfolio Button */}
+            <div className="mt-7 pointer-events-auto flex items-center gap-4">
+              <button
+                onClick={() => {
+                  const track = heroTrackRef.current;
+                  if (track) {
+                    const targetY = track.offsetTop + track.offsetHeight - window.innerHeight;
+                    window.scrollTo({ top: targetY, behavior: 'smooth' });
+                  } else {
+                    targetProgressRef.current = 1.0;
+                  }
+                }}
+                className="bg-[#dfff00] text-[#121414] font-technical text-[12px] py-3.5 px-7 rounded-sm kinetic-hover uppercase tracking-widest font-bold flex items-center gap-2 shadow-[0_0_18px_rgba(223,255,0,0.35)] cursor-pointer transition-transform active:scale-95"
+              >
+                <span>Enter Portfolio</span>
+                <ArrowDown className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -282,6 +275,16 @@ export const KineticScrollHero: React.FC = () => {
                 >
                   <span>Domains </span>
                   <ArrowDown className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    targetProgressRef.current = 0.0;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="border border-white/20 hover:border-[#dfff00] text-[#e2e2e2] hover:text-[#dfff00] font-technical text-[12px] py-3.5 px-6 rounded-sm uppercase tracking-widest font-semibold flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <span>Back to 3D Room ↑</span>
                 </button>
 
                 <div className="inline-flex items-center gap-2 px-3 py-2 text-[11px] font-technical text-[#dfff00]/70">

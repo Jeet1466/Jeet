@@ -64,9 +64,9 @@ const MainContent: React.FC = () => {
           {/* Top Bar for Fullscreen 3D */}
           <div className="flex justify-between items-center px-6 py-3 border-b border-white/10 bg-[#121414]/90 backdrop-blur-md z-30">
             <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#dfff00] animate-pulse shadow-[0_0_8px_#dfff00]"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#dfff00] shadow-[0_0_8px_#dfff00]"></span>
               <span className="font-technical text-[12px] text-[#dfff00] font-bold uppercase tracking-widest">
-                KINETIC_DESKTOP_V5 // FULLSCREEN_STAGE
+                KINETIC_CODER_ROOM // 3D_STAGE
               </span>
             </div>
             <button

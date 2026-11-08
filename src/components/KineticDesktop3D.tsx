@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -7,18 +7,15 @@ interface KineticDesktop3DProps {
   className?: string;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
-  scrollProgress?: number; // 0 (wide desktop) -> 1 (fully zoomed into screen)
+  scrollProgress?: number; // 0 (room overview) -> 1 (zoomed into center monitor screen)
   onDiveComplete?: () => void;
 }
 
 // Module-level reusable math objects for zero garbage collection
-const _targetLook = new THREE.Vector3();
-const _headTarget = new THREE.Vector3();
-const _currentLook = new THREE.Vector3();
-const _camStartPos = new THREE.Vector3(2.35, 1.75, 2.75);
-const _camStartLook = new THREE.Vector3(0, 1.05, 0);
-const _camScreenPos = new THREE.Vector3(0.0, 1.35, -0.14);
-const _camScreenLook = new THREE.Vector3(0.0, 1.35, -0.50);
+const _camStartPos = new THREE.Vector3(2.4, 1.7, 2.2);
+const _camStartLook = new THREE.Vector3(0, 1.1, -0.15);
+const _camScreenPos = new THREE.Vector3(0.0, 1.35, -0.10);
+const _camScreenLook = new THREE.Vector3(0.0, 1.35, -0.44);
 const _currentTargetPos = new THREE.Vector3();
 const _currentLookAt = new THREE.Vector3();
 
@@ -35,9 +32,6 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
   onDiveComplete
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const [viewPreset] = useState<'hero' | 'figure' | 'screens' | 'orbit'>('hero');
-  const [lightingPreset] = useState<'norris' | 'cyberpunk' | 'matrix' | 'stealth'>('norris');
-  const [isTyping] = useState(true);
 
   // References for render loop coordination
   const controlsRef = useRef<OrbitControls | null>(null);
@@ -45,78 +39,21 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
 
-  // References to animated character parts
-  const headGroupRef = useRef<THREE.Group | null>(null);
-  const leftArmRef = useRef<THREE.Group | null>(null);
-  const rightArmRef = useRef<THREE.Group | null>(null);
-  const ahogeRef = useRef<THREE.Group | null>(null);
+  // References to animated elements
+  const mainScreenTextureRef = useRef<THREE.CanvasTexture | null>(null);
+  const vertScreenTextureRef = useRef<THREE.CanvasTexture | null>(null);
+  const sideScreenTextureRef = useRef<THREE.CanvasTexture | null>(null);
+  const pcFansRef = useRef<THREE.Mesh[]>([]);
+  const steamParticlesRef = useRef<THREE.Points | null>(null);
+
+  // Floating bot references
   const droneRef = useRef<THREE.Group | null>(null);
   const droneRingsRef = useRef<THREE.Group | null>(null);
   const droneEyeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const droneEyeTexRef = useRef<THREE.CanvasTexture | null>(null);
-  const faceCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const faceTexRef = useRef<THREE.CanvasTexture | null>(null);
-  const mainScreenTextureRef = useRef<THREE.CanvasTexture | null>(null);
-  const sideScreenTextureRef = useRef<THREE.CanvasTexture | null>(null);
 
-  const lightsRef = useRef<{
-    keyLight: THREE.DirectionalLight;
-    pointLight: THREE.PointLight;
-    accentLight: THREE.PointLight;
-    deskGlow: THREE.PointLight;
-  } | null>(null);
-
-  const pointerPos = useRef({ x: 0, y: 0 });
   const scrollProgressRef = useRef(scrollProgress);
   scrollProgressRef.current = scrollProgress;
-
-  // Camera target animation
-  const cameraTargetPos = useRef(new THREE.Vector3(2.35, 1.75, 2.75));
-  const cameraLookAtPos = useRef(new THREE.Vector3(0, 1.05, 0));
-
-  // Change camera position based on preset when not scrolling
-  useEffect(() => {
-    if (!controlsRef.current || !cameraRef.current) return;
-    if (scrollProgressRef.current > 0.05) return; // scroll overrides presets
-
-    if (viewPreset === 'hero') {
-      cameraTargetPos.current.set(2.35, 1.75, 2.75);
-      cameraLookAtPos.current.set(0, 1.05, 0);
-    } else if (viewPreset === 'figure') {
-      cameraTargetPos.current.set(0.45, 1.38, 1.35);
-      cameraLookAtPos.current.set(0, 1.25, 0.2);
-    } else if (viewPreset === 'screens') {
-      cameraTargetPos.current.set(0.0, 1.38, 1.4);
-      cameraLookAtPos.current.set(0, 1.25, -0.4);
-    }
-  }, [viewPreset]);
-
-  // Adjust lights on theme preset change
-  useEffect(() => {
-    if (!lightsRef.current) return;
-    const { keyLight, pointLight, accentLight, deskGlow } = lightsRef.current;
-    if (lightingPreset === 'norris') {
-      keyLight.color.set('#ffffff');
-      pointLight.color.set('#dfff00'); // Norris yellow
-      accentLight.color.set('#dfff00');
-      deskGlow.color.set('#dfff00');
-    } else if (lightingPreset === 'cyberpunk') {
-      keyLight.color.set('#00f0ff');
-      pointLight.color.set('#ff0077');
-      accentLight.color.set('#00ffff');
-      deskGlow.color.set('#ff00aa');
-    } else if (lightingPreset === 'matrix') {
-      keyLight.color.set('#a0ffa0');
-      pointLight.color.set('#00ff66');
-      accentLight.color.set('#00ff44');
-      deskGlow.color.set('#00ff88');
-    } else if (lightingPreset === 'stealth') {
-      keyLight.color.set('#ffffff');
-      pointLight.color.set('#888888');
-      accentLight.color.set('#ffffff');
-      deskGlow.color.set('#444444');
-    }
-  }, [lightingPreset]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -142,8 +79,8 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const height = container.clientHeight || window.innerHeight;
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(0x0e1010);
-    scene.fog = new THREE.FogExp2(0x0e1010, 0.12);
+    scene.background = new THREE.Color(0x0e1112);
+    scene.fog = new THREE.FogExp2(0x0e1112, 0.075);
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 50);
     camera.position.copy(_camStartPos);
@@ -159,7 +96,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.25;
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
@@ -170,73 +107,83 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
     pmremGenerator.dispose();
 
-    // 5. Controls
+    // 5. OrbitControls - Room exploration with left-click orbit & right-click pan
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = !isSoftwareGl;
     controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2 + 0.05;
-    controls.minDistance = 0.8;
-    controls.maxDistance = 6.5;
+    // Enable zoom only in fullscreen 3D mode; in page flow, wheel smoothly scrolls page/dives into screen
+    controls.enableZoom = isFullscreen;
+    controls.minDistance = 0.45; // Can zoom in super close in fullscreen
+    controls.maxDistance = 4.2; // Keeps camera within room bounds
+    controls.maxPolarAngle = Math.PI / 2 - 0.02; // Cannot look from beneath floor
     controls.target.copy(_camStartLook);
     controlsRef.current = controls;
 
-    let isUserInteracting = false;
-    controls.addEventListener('start', () => { isUserInteracting = true; });
-    controls.addEventListener('end', () => { isUserInteracting = false; });
-
-    // 6. Balanced Studio Lights
-    const hemiLight = new THREE.HemisphereLight(0x445566, 0x111111, 0.9);
+    // 6. Atmospheric Studio Lighting Rig
+    const hemiLight = new THREE.HemisphereLight(0x4a5d6e, 0x121416, 0.95);
     scene.add(hemiLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.3);
-    keyLight.position.set(3, 5, 3);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(2.8, 4.5, 2.5);
     keyLight.castShadow = !isSoftwareGl;
     keyLight.shadow.mapSize.width = 1024;
     keyLight.shadow.mapSize.height = 1024;
     keyLight.shadow.bias = -0.0005;
     scene.add(keyLight);
 
-    const pointLight = new THREE.PointLight(0xdfff00, 2.8, 5); // Norris Yellow hero rim light
-    pointLight.position.set(-1.8, 2.2, 1.5);
+    // Warm Norris yellow ambient accents
+    const pointLight = new THREE.PointLight(0xdfff00, 2.4, 5.5);
+    pointLight.position.set(-1.8, 2.2, 1.2);
     scene.add(pointLight);
 
-    const accentLight = new THREE.PointLight(0xdfff00, 3.4, 4); // Screen glow
-    accentLight.position.set(0, 1.35, -0.2);
+    const accentLight = new THREE.PointLight(0xdfff00, 2.0, 3.2); // Screen ambient rear halo behind monitor
+    accentLight.position.set(0, 1.35, -0.52);
     scene.add(accentLight);
 
-    const deskGlow = new THREE.PointLight(0xdfff00, 1.6, 3); // Under-desk accent
-    deskGlow.position.set(0, 0.4, 0.3);
+    const deskGlow = new THREE.PointLight(0xdfff00, 2.0, 3.2); // Under-desk RGB rail
+    deskGlow.position.set(0, 0.45, 0.2);
     scene.add(deskGlow);
 
-    lightsRef.current = { keyLight, pointLight, accentLight, deskGlow };
+    const wallWash = new THREE.PointLight(0xdfff00, 2.2, 4.5); // Warm wash behind front wall acoustic slats
+    wallWash.position.set(0, 2.4, -2.8);
+    scene.add(wallWash);
+
+    const pcGlow = new THREE.PointLight(0xdfff00, 2.6, 2.2); // PC Chassis internal glow
+    pcGlow.position.set(1.55, 1.15, -0.05);
+    scene.add(pcGlow);
+
+    // Screen lightbar downlight spotlight
+    const lightBarSpot = new THREE.SpotLight(0xfff7e6, 3.4, 2.2, Math.PI / 4, 0.4, 1.2);
+    lightBarSpot.position.set(0, 1.70, -0.38);
+    lightBarSpot.target.position.set(0, 0.88, 0.05);
+    scene.add(lightBarSpot);
+    scene.add(lightBarSpot.target);
 
     // ==========================================
-    // 7. BUILD PROCEDURAL 3D KINETIC DESKTOP SCENE
+    // 7. BUILD RICH, COZY CODER SANCTUARY ROOM
+    // (Architectural walls, acoustic slats, Nanoleaf panels, server rack, espresso bar, plants, hardware lab)
     // ==========================================
     const rootGroup = new THREE.Group();
     scene.add(rootGroup);
 
-    // --- A. Grid Floor & Platform ---
-    const floorGeo = new THREE.PlaneGeometry(16, 16, 32, 32);
+    // --- A. ROOM FLOOR & PLUSH GEOMETRIC RUG ---
+    const floorGeo = new THREE.PlaneGeometry(9.0, 8.5, 32, 32);
     const floorCanvas = document.createElement('canvas');
     floorCanvas.width = 512;
     floorCanvas.height = 512;
     const fctx = floorCanvas.getContext('2d')!;
-    fctx.fillStyle = '#101212';
+    fctx.fillStyle = '#111314';
     fctx.fillRect(0, 0, 512, 512);
-    fctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    fctx.lineWidth = 1;
-    for (let i = 0; i <= 512; i += 32) {
-      fctx.beginPath();
-      fctx.moveTo(i, 0); fctx.lineTo(i, 512);
-      fctx.moveTo(0, i); fctx.lineTo(512, i);
-      fctx.stroke();
-    }
-    // Yellow hazard lines
-    fctx.strokeStyle = 'rgba(223, 255, 0, 0.25)';
+
+    // Studio tech-tile grid
+    fctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     fctx.lineWidth = 2;
-    fctx.strokeRect(128, 128, 256, 256);
-    fctx.strokeRect(192, 192, 128, 128);
+    for (let y = 0; y <= 512; y += 48) {
+      fctx.beginPath(); fctx.moveTo(0, y); fctx.lineTo(512, y); fctx.stroke();
+    }
+    for (let x = 0; x <= 512; x += 64) {
+      fctx.beginPath(); fctx.moveTo(x, 0); fctx.lineTo(x, 512); fctx.stroke();
+    }
 
     const floorTexture = new THREE.CanvasTexture(floorCanvas);
     floorTexture.wrapS = THREE.RepeatWrapping;
@@ -244,103 +191,774 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     floorTexture.repeat.set(4, 4);
     floorTexture.colorSpace = THREE.SRGBColorSpace;
 
-    const floorMat = new THREE.MeshStandardMaterial({
-      map: floorTexture,
-      roughness: 0.8,
-      metalness: 0.2
-    });
+    const floorMat = new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 0.65, metalness: 0.2 });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
+    floorMesh.position.set(0, 0, 0.2);
     floorMesh.receiveShadow = !isSoftwareGl;
     rootGroup.add(floorMesh);
 
-    // Contact shadow
-    const shadowGeo = new THREE.PlaneGeometry(2.4, 2.2);
-    const shadowCanvas = document.createElement('canvas');
-    shadowCanvas.width = 256;
-    shadowCanvas.height = 256;
-    const sctx = shadowCanvas.getContext('2d')!;
-    const grad = sctx.createRadialGradient(128, 128, 10, 128, 128, 120);
-    grad.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
-    grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    sctx.fillStyle = grad;
-    sctx.fillRect(0, 0, 256, 256);
+    // Geometric Coder Rug
+    const rugGeo = new THREE.PlaneGeometry(3.4, 2.6);
+    const rugCanvas = document.createElement('canvas');
+    rugCanvas.width = 512;
+    rugCanvas.height = 512;
+    const rctx = rugCanvas.getContext('2d')!;
+    rctx.fillStyle = '#151819';
+    rctx.fillRect(0, 0, 512, 512);
+    rctx.strokeStyle = 'rgba(223, 255, 0, 0.35)';
+    rctx.lineWidth = 3;
+    rctx.strokeRect(18, 18, 476, 476);
+    rctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    rctx.lineWidth = 1.5;
+    for (let i = 36; i < 480; i += 32) {
+      rctx.beginPath(); rctx.moveTo(i, 18); rctx.lineTo(i, 494); rctx.stroke();
+      rctx.beginPath(); rctx.moveTo(18, i); rctx.lineTo(494, i); rctx.stroke();
+    }
+    const rugTexture = new THREE.CanvasTexture(rugCanvas);
+    rugTexture.colorSpace = THREE.SRGBColorSpace;
+    const rugMesh = new THREE.Mesh(rugGeo, new THREE.MeshStandardMaterial({ map: rugTexture, roughness: 0.9 }));
+    rugMesh.rotation.x = -Math.PI / 2;
+    rugMesh.position.set(0, 0.004, 0.25);
+    rugMesh.receiveShadow = !isSoftwareGl;
+    rootGroup.add(rugMesh);
 
-    const shadowTex = new THREE.CanvasTexture(shadowCanvas);
-    const shadowMat = new THREE.MeshBasicMaterial({
-      map: shadowTex,
-      transparent: true,
-      opacity: 0.7,
-      depthWrite: false
-    });
-    const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-    shadowMesh.rotation.x = -Math.PI / 2;
-    shadowMesh.position.y = 0.005;
-    shadowMesh.position.z = 0.1;
-    rootGroup.add(shadowMesh);
+    // --- B. PANORAMIC OBSERVATION SPACE WINDOW (FRONT WALL) ---
+    // User requested: "in front there should be window with distant space view. Wall should be behind."
+    // 1. Distant Cosmic Sky Canvas Backdrop (Stars, Purple/Teal Nebula, Distant Celestial Planet)
+    const spaceCanvas = document.createElement('canvas');
+    spaceCanvas.width = 1024;
+    spaceCanvas.height = 512;
+    const spCtx = spaceCanvas.getContext('2d')!;
 
-    // --- B. Cyberpunk Kinetic Desk ---
+    // Deep space dark void
+    const bgGrad = spCtx.createLinearGradient(0, 0, 1024, 512);
+    bgGrad.addColorStop(0, '#020306');
+    bgGrad.addColorStop(0.5, '#04060d');
+    bgGrad.addColorStop(1, '#020308');
+    spCtx.fillStyle = bgGrad;
+    spCtx.fillRect(0, 0, 1024, 512);
+
+    // Swirling Cosmic Nebulae
+    // Purple / Magenta Nebula Cloud
+    const neb1 = spCtx.createRadialGradient(380, 220, 30, 380, 220, 260);
+    neb1.addColorStop(0, 'rgba(168, 85, 247, 0.45)');
+    neb1.addColorStop(0.4, 'rgba(126, 34, 206, 0.25)');
+    neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = neb1;
+    spCtx.fillRect(0, 0, 1024, 512);
+
+    // Cyan / Electric Blue Celestial Cloud
+    const neb2 = spCtx.createRadialGradient(680, 180, 20, 680, 180, 220);
+    neb2.addColorStop(0, 'rgba(6, 182, 212, 0.40)');
+    neb2.addColorStop(0.5, 'rgba(14, 116, 144, 0.20)');
+    neb2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = neb2;
+    spCtx.fillRect(0, 0, 1024, 512);
+
+    // Warm Gold Stardust Core
+    const neb3 = spCtx.createRadialGradient(500, 260, 10, 500, 260, 160);
+    neb3.addColorStop(0, 'rgba(223, 255, 0, 0.22)');
+    neb3.addColorStop(0.6, 'rgba(234, 179, 8, 0.08)');
+    neb3.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = neb3;
+    spCtx.fillRect(0, 0, 1024, 512);
+
+    // Distant Ringed Planet / Moon (Upper Right)
+    const px = 760, py = 150, pr = 48;
+    // Outer atmospheric glow
+    const pAtmo = spCtx.createRadialGradient(px, py, pr * 0.8, px, py, pr * 1.5);
+    pAtmo.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+    pAtmo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = pAtmo;
+    spCtx.beginPath();
+    spCtx.arc(px, py, pr * 1.5, 0, Math.PI * 2);
+    spCtx.fill();
+
+    // Planet body
+    const planetGrad = spCtx.createRadialGradient(px - 14, py - 14, 4, px, py, pr);
+    planetGrad.addColorStop(0, '#93c5fd');
+    planetGrad.addColorStop(0.4, '#1e3a8a');
+    planetGrad.addColorStop(0.85, '#0f172a');
+    planetGrad.addColorStop(1, '#020617');
+    spCtx.fillStyle = planetGrad;
+    spCtx.beginPath();
+    spCtx.arc(px, py, pr, 0, Math.PI * 2);
+    spCtx.fill();
+
+    // Planetary Rings
+    spCtx.save();
+    spCtx.translate(px, py);
+    spCtx.rotate(-0.35);
+    spCtx.strokeStyle = 'rgba(223, 255, 0, 0.45)';
+    spCtx.lineWidth = 3;
+    spCtx.beginPath();
+    spCtx.ellipse(0, 0, pr * 2.1, pr * 0.45, 0, 0, Math.PI * 2);
+    spCtx.stroke();
+    spCtx.strokeStyle = 'rgba(147, 197, 253, 0.35)';
+    spCtx.lineWidth = 1.5;
+    spCtx.beginPath();
+    spCtx.ellipse(0, 0, pr * 2.35, pr * 0.52, 0, 0, Math.PI * 2);
+    spCtx.stroke();
+    spCtx.restore();
+
+    // Dense Multitude of Stars
+    for (let s = 0; s < 320; s++) {
+      const sx = (Math.sin(s * 1337.7) * 0.5 + 0.5) * 1024;
+      const sy = (Math.cos(s * 911.3) * 0.5 + 0.5) * 512;
+      const sr = (s % 7 === 0) ? 2.2 : (s % 3 === 0 ? 1.5 : 0.9);
+      const alpha = 0.4 + (s % 5) * 0.15;
+      spCtx.fillStyle = (s % 6 === 0) ? `rgba(223, 255, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`;
+      spCtx.beginPath();
+      spCtx.arc(sx, sy, sr, 0, Math.PI * 2);
+      spCtx.fill();
+
+      // Diffraction cross-spikes on major bright stars
+      if (s % 17 === 0) {
+        spCtx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.7})`;
+        spCtx.lineWidth = 1;
+        spCtx.beginPath();
+        spCtx.moveTo(sx - 8, sy); spCtx.lineTo(sx + 8, sy);
+        spCtx.moveTo(sx, sy - 8); spCtx.lineTo(sx, sy + 8);
+        spCtx.stroke();
+      }
+    }
+
+    const spaceTexture = new THREE.CanvasTexture(spaceCanvas);
+    spaceTexture.colorSpace = THREE.SRGBColorSpace;
+    const spaceMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(12.0, 6.2),
+      new THREE.MeshBasicMaterial({ map: spaceTexture })
+    );
+    spaceMesh.position.set(0, 2.3, -3.95);
+    rootGroup.add(spaceMesh);
+
+    // 2. Front Architectural Window Enclosure & Mullions
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x161819, roughness: 0.85, metalness: 0.1 });
+    const frameMatWall = new THREE.MeshStandardMaterial({ color: 0x101213, roughness: 0.4, metalness: 0.85 });
+
+    // Left and Right Wall Flanks flanking the central window
+    const wallFlankL = new THREE.Mesh(new THREE.BoxGeometry(1.8, 4.2, 0.1), wallMat);
+    wallFlankL.position.set(-3.6, 2.1, -3.2);
+    rootGroup.add(wallFlankL);
+
+    const wallFlankR = new THREE.Mesh(new THREE.BoxGeometry(1.8, 4.2, 0.1), wallMat);
+    wallFlankR.position.set(3.6, 2.1, -3.2);
+    rootGroup.add(wallFlankR);
+
+    // Vertical Acoustic Slats on Wall Flanks
+    const slatMat = new THREE.MeshStandardMaterial({ color: 0x222627, roughness: 0.7, metalness: 0.15 });
+    for (let i = -4.3; i <= -2.9; i += 0.14) {
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(0.04, 3.8, 0.03), slatMat);
+      slat.position.set(i, 2.0, -3.14);
+      rootGroup.add(slat);
+    }
+    for (let i = 2.9; i <= 4.3; i += 0.14) {
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(0.04, 3.8, 0.03), slatMat);
+      slat.position.set(i, 2.0, -3.14);
+      rootGroup.add(slat);
+    }
+
+    // Lower apron below window (subtle low sill)
+    const lowerApron = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.45, 0.1), wallMat);
+    lowerApron.position.set(0, 0.225, -3.2);
+    rootGroup.add(lowerApron);
+
+    // Top lintel above window
+    const topLintel = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.45, 0.1), wallMat);
+    topLintel.position.set(0, 3.975, -3.2);
+    rootGroup.add(topLintel);
+
+    // Illuminated Window Sill with Warm Ambient LED Glow
+    const windowSill = new THREE.Mesh(
+      new THREE.BoxGeometry(5.62, 0.04, 0.22),
+      frameMatWall
+    );
+    windowSill.position.set(0, 0.45, -3.14);
+    rootGroup.add(windowSill);
+
+    const sillGlow = new THREE.Mesh(
+      new THREE.BoxGeometry(5.5, 0.015, 0.02),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.85 })
+    );
+    sillGlow.position.set(0, 0.47, -3.05);
+    rootGroup.add(sillGlow);
+
+    // Sleek Architectural Vertical Mullions (Dividing into wide cinematic panes)
+    const mullion1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 3.5, 0.08), frameMatWall);
+    mullion1.position.set(-1.0, 2.2, -3.18);
+    rootGroup.add(mullion1);
+
+    const mullion2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 3.5, 0.08), frameMatWall);
+    mullion2.position.set(1.0, 2.2, -3.18);
+    rootGroup.add(mullion2);
+
+    // Clear Panoramic Aerospace Glass Pane
+    const spaceGlass = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.5, 3.5),
+      new THREE.MeshStandardMaterial({
+        color: 0x0a141e,
+        transparent: true,
+        opacity: 0.12,
+        roughness: 0.05,
+        metalness: 0.3
+      })
+    );
+    spaceGlass.position.set(0, 2.2, -3.2);
+    rootGroup.add(spaceGlass);
+
+    // Sleek Station ID Sign above Window Header
+    const signCanvas = document.createElement('canvas');
+    signCanvas.width = 512;
+    signCanvas.height = 128;
+    const sctx = signCanvas.getContext('2d')!;
+    sctx.fillStyle = '#0a0c0c';
+    sctx.fillRect(0, 0, 512, 128);
+    sctx.strokeStyle = '#dfff00';
+    sctx.lineWidth = 4;
+    sctx.strokeRect(6, 6, 500, 116);
+    sctx.fillStyle = '#dfff00';
+    sctx.font = 'bold 36px "JetBrains Mono", monospace';
+    sctx.textAlign = 'center';
+    sctx.textBaseline = 'middle';
+    sctx.fillText('>_ JEET.DEV // ORBITAL', 256, 64);
+
+    const signTexture = new THREE.CanvasTexture(signCanvas);
+    signTexture.colorSpace = THREE.SRGBColorSpace;
+    const signMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 0.32),
+      new THREE.MeshBasicMaterial({ map: signTexture, side: THREE.DoubleSide })
+    );
+    signMesh.position.set(0, 3.96, -3.14);
+    rootGroup.add(signMesh);
+
+    // --- C. ENCLOSING WALLS, BACKWALL DOOR & HIGH-VISIBILITY ARCHITECTURAL BOARD ---
+    // User requested: "Swap the Right and Left Wall and the Door should be on Back wall side, The Board on Backwall is not properly visible."
+    
+    // 1. Back Wall (z = 3.6)
+    const backWall = new THREE.Mesh(new THREE.BoxGeometry(9.0, 4.2, 0.1), wallMat);
+    backWall.position.set(0, 2.1, 3.6);
+    rootGroup.add(backWall);
+
+    // Warm ceiling wash light for back wall
+    const backWash = new THREE.Mesh(
+      new THREE.BoxGeometry(7.2, 0.02, 0.04),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9 })
+    );
+    backWash.position.set(0, 4.0, 3.52);
+    rootGroup.add(backWash);
+
+    // Modern Architectural Access Door on the BACK WALL (Left side: x = -2.5, z = 3.55)
+    const doorGroup = new THREE.Group();
+    doorGroup.position.set(-2.5, 0, 3.55);
+    rootGroup.add(doorGroup);
+
+    // Door Frame Surround
+    const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x121415, roughness: 0.35, metalness: 0.85 });
+    const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(1.45, 2.65, 0.10), doorFrameMat);
+    doorFrame.position.set(0, 1.325, 0);
+    doorGroup.add(doorFrame);
+
+    // Recessed Door Leaf (Dark Charcoal Minimalist Panel)
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x1c1f21, roughness: 0.45, metalness: 0.5 });
+    const doorLeaf = new THREE.Mesh(new THREE.BoxGeometry(1.32, 2.55, 0.05), doorMat);
+    doorLeaf.position.set(0, 1.325, -0.015);
+    doorGroup.add(doorLeaf);
+
+    // Architectural Horizontal Seams on Door Leaf
+    for (let k = 0.6; k <= 2.2; k += 0.5) {
+      const seam = new THREE.Mesh(
+        new THREE.BoxGeometry(1.25, 0.008, 0.055),
+        new THREE.MeshStandardMaterial({ color: 0x0a0c0d, roughness: 0.8 })
+      );
+      seam.position.set(0, k, -0.015);
+      doorGroup.add(seam);
+    }
+
+    // Long Vertical Flush Door Handle with Warm Amber/Norris LED Backlight
+    const handleMat = new THREE.MeshStandardMaterial({ color: 0x252a2d, roughness: 0.2, metalness: 0.95 });
+    const handleBar = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.05, 0.03), handleMat);
+    handleBar.position.set(0.48, 1.28, -0.045);
+    doorGroup.add(handleBar);
+
+    const handleGlow = new THREE.Mesh(
+      new THREE.BoxGeometry(0.015, 1.02, 0.015),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9 })
+    );
+    handleGlow.position.set(0.48, 1.28, -0.038);
+    doorGroup.add(handleGlow);
+
+    // Electronic Smart Access Keypad Console beside Door
+    const keypadConsole = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.24, 0.03),
+      new THREE.MeshStandardMaterial({ color: 0x141718, roughness: 0.35, metalness: 0.85 })
+    );
+    keypadConsole.position.set(-0.85, 1.35, -0.02);
+    doorGroup.add(keypadConsole);
+
+    // Glowing Status LED on Keypad (Green = Access Granted)
+    const accessLed = new THREE.Mesh(
+      new THREE.SphereGeometry(0.012, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 1.0 })
+    );
+    accessLed.position.set(-0.85, 1.42, -0.036);
+    doorGroup.add(accessLed);
+
+    // Door Header Station Exit Plaque
+    const doorSignCanvas = document.createElement('canvas');
+    doorSignCanvas.width = 256;
+    doorSignCanvas.height = 64;
+    const dsCtx = doorSignCanvas.getContext('2d')!;
+    dsCtx.fillStyle = '#0a0d0e';
+    dsCtx.fillRect(0, 0, 256, 64);
+    dsCtx.strokeStyle = '#dfff00';
+    dsCtx.lineWidth = 2;
+    dsCtx.strokeRect(3, 3, 250, 58);
+    dsCtx.fillStyle = '#dfff00';
+    dsCtx.font = 'bold 20px "JetBrains Mono", monospace';
+    dsCtx.textAlign = 'center';
+    dsCtx.textBaseline = 'middle';
+    dsCtx.fillText('[ ACCESS // SECTOR_01 ]', 128, 32);
+
+    const doorSignTex = new THREE.CanvasTexture(doorSignCanvas);
+    doorSignTex.colorSpace = THREE.SRGBColorSpace;
+    const doorSignMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.85, 0.22),
+      new THREE.MeshBasicMaterial({ map: doorSignTex, toneMapped: false })
+    );
+    doorSignMesh.position.set(0, 2.82, -0.065);
+    doorSignMesh.rotation.y = Math.PI; // Faces into room towards front
+    doorGroup.add(doorSignMesh);
+
+    // Overhead Directional Downlight above Doorway
+    const doorSpot = new THREE.SpotLight(0xfff5db, 2.5, 3.8, Math.PI / 4, 0.35, 1.2);
+    doorSpot.position.set(-2.5, 3.5, 2.8);
+    doorSpot.target.position.set(-2.5, 1.3, 3.55);
+    rootGroup.add(doorSpot);
+    rootGroup.add(doorSpot.target);
+
+    // 2. High-Tech Prominently Visible Architectural Blueprint Board on Back Wall
+    // User requested: "The Board on Backwall is not properly visible"
+    // Positioned beside the door: centered at x = 1.1, y = 2.15, z = 3.54 (3.6m wide x 1.9m high)
+    const bpCanvas = document.createElement('canvas');
+    bpCanvas.width = 1536;
+    bpCanvas.height = 800;
+    const bpCtx = bpCanvas.getContext('2d')!;
+    bpCtx.fillStyle = '#080c10';
+    bpCtx.fillRect(0, 0, 1536, 800);
+
+    // Technical Blueprint Grid
+    bpCtx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+    bpCtx.lineWidth = 1;
+    for (let x = 0; x <= 1536; x += 32) {
+      bpCtx.beginPath(); bpCtx.moveTo(x, 0); bpCtx.lineTo(x, 800); bpCtx.stroke();
+    }
+    for (let y = 0; y <= 800; y += 32) {
+      bpCtx.beginPath(); bpCtx.moveTo(0, y); bpCtx.lineTo(1536, y); bpCtx.stroke();
+    }
+
+    // Outer double glowing architectural frame
+    bpCtx.strokeStyle = '#dfff00';
+    bpCtx.lineWidth = 4;
+    bpCtx.strokeRect(24, 24, 1488, 752);
+    bpCtx.strokeStyle = 'rgba(0, 229, 255, 0.5)';
+    bpCtx.lineWidth = 1.5;
+    bpCtx.strokeRect(32, 32, 1472, 736);
+
+    // Title Header Bar
+    bpCtx.fillStyle = '#0f161d';
+    bpCtx.fillRect(36, 36, 1464, 90);
+    bpCtx.strokeStyle = '#dfff00';
+    bpCtx.lineWidth = 2;
+    bpCtx.strokeRect(36, 36, 1464, 90);
+
+    bpCtx.fillStyle = '#dfff00';
+    bpCtx.font = 'bold 36px "JetBrains Mono", monospace';
+    bpCtx.fillText('[ JEET PATEL // CLUSTER_ARCHITECTURE & DISTRIBUTED_SYSTEMS ]', 64, 94);
+
+    bpCtx.fillStyle = '#00e5ff';
+    bpCtx.font = 'bold 18px "JetBrains Mono", monospace';
+    bpCtx.fillText('STATUS: RUNNING // MULTI-REGION CONSENSUS // ENCLAVE SECURED // SURAT', 64, 118);
+
+    // Blueprint Diagram Modules
+    const drawBpBox = (
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      title: string,
+      sub: string,
+      accentColor: string,
+      status: string
+    ) => {
+      bpCtx.fillStyle = '#101720';
+      bpCtx.fillRect(x, y, w, h);
+      bpCtx.strokeStyle = accentColor;
+      bpCtx.lineWidth = 2.5;
+      bpCtx.strokeRect(x, y, w, h);
+
+      // Header strip
+      bpCtx.fillStyle = accentColor;
+      bpCtx.fillRect(x, y, w, 28);
+      bpCtx.fillStyle = '#080a0c';
+      bpCtx.font = 'bold 16px "JetBrains Mono", monospace';
+      bpCtx.fillText(title, x + 12, y + 20);
+
+      bpCtx.fillStyle = '#ffffff';
+      bpCtx.font = '14px "JetBrains Mono", monospace';
+      bpCtx.fillText(sub, x + 14, y + 54);
+
+      bpCtx.fillStyle = '#10b981';
+      bpCtx.font = 'bold 12px "JetBrains Mono", monospace';
+      bpCtx.fillText(`● ${status}`, x + 14, y + 78);
+    };
+
+    drawBpBox(70, 160, 310, 95, 'INGRESS_GATEWAY', 'Envoy / Multipath QUIC / TLS 1.3', '#00e5ff', 'ONLINE (0% LOSS)');
+    drawBpBox(440, 160, 310, 95, 'CONSENSUS_ENGINE', 'Multi-Raft Quorum / 32 Nodes', '#dfff00', 'LEADER ELECTED');
+    drawBpBox(810, 160, 310, 95, 'NEURAL_TENSOR_CORE', 'CUDA FP16 / Triton Server', '#e879f9', '1.2ms LATENCY');
+    drawBpBox(1180, 160, 300, 95, 'STORAGE_LSM_TREE', 'Distributed RocksDB / NVMe', '#34d399', 'PERSISTED');
+
+    drawBpBox(250, 320, 320, 95, 'ZERO_TRUST_SECURITY', 'eBPF Kernel Packet Inspection', '#f87171', 'ALL CVE 0');
+    drawBpBox(630, 320, 320, 95, 'STREAMING_PIPELINE', 'Kafka / Event Aggregator', '#38bdf8', '890k MSG/SEC');
+    drawBpBox(1010, 320, 320, 95, 'OBSERVABILITY_RADAR', 'Prometheus / OpenTelemetry', '#fbbf24', 'HEALTHY');
+
+    // Glowing Bus Connections
+    bpCtx.strokeStyle = '#dfff00';
+    bpCtx.lineWidth = 3;
+    bpCtx.beginPath();
+    bpCtx.moveTo(380, 207); bpCtx.lineTo(440, 207);
+    bpCtx.moveTo(750, 207); bpCtx.lineTo(810, 207);
+    bpCtx.moveTo(1120, 207); bpCtx.lineTo(1180, 207);
+
+    bpCtx.moveTo(595, 255); bpCtx.lineTo(595, 320);
+    bpCtx.moveTo(965, 255); bpCtx.lineTo(965, 320);
+    bpCtx.stroke();
+
+    // Circuit Data Path Grid at bottom
+    bpCtx.fillStyle = '#0e141a';
+    bpCtx.fillRect(70, 460, 1390, 270);
+    bpCtx.strokeStyle = 'rgba(223, 255, 0, 0.4)';
+    bpCtx.lineWidth = 1.5;
+    bpCtx.strokeRect(70, 460, 1390, 270);
+
+    bpCtx.fillStyle = '#dfff00';
+    bpCtx.font = 'bold 20px "JetBrains Mono", monospace';
+    bpCtx.fillText('HARDWARE & KERNEL ACCELERATION MATRIX [TOPOLOGY_V5]', 94, 500);
+
+    bpCtx.font = '15px "JetBrains Mono", monospace';
+    bpCtx.fillStyle = '#94a3b8';
+    bpCtx.fillText('>_ [KERNEL] Linux 6.8-rt / NUMA topology balanced / CPU affinity pin: cores 0-7', 94, 545);
+    bpCtx.fillText('>_ [GPU] NVIDIA RTX 4090 / 16,384 CUDA Cores / 512 Tensor Cores / VRAM: 24GB G6X', 94, 585);
+    bpCtx.fillText('>_ [NETWORKING] Dual 10GbE SFP+ / DPDK Userspace Packet Processing / QUIC Ingress', 94, 625);
+    bpCtx.fillText('>_ [STORAGE] 4x 2TB Gen5 NVMe RAID-0 / 14,000 MB/s Sequential Read / 1.5M IOPS', 94, 665);
+    bpCtx.fillStyle = '#10b981';
+    bpCtx.fillText('● SYSTEM READY // HIGH PERFORMANCE COMPUTING SANCTUARY // FULL TELEMETRY ONLINE', 94, 705);
+
+    const bpTex = new THREE.CanvasTexture(bpCanvas);
+    bpTex.colorSpace = THREE.SRGBColorSpace;
+    const bpMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.6, 1.9),
+      new THREE.MeshBasicMaterial({ map: bpTex, toneMapped: false })
+    );
+    bpMesh.position.set(1.1, 2.15, 3.54);
+    bpMesh.rotation.y = Math.PI; // Faces into room towards front window
+    rootGroup.add(bpMesh);
+
+    // Glowing Neon Yellow Border Frame around Board
+    const boardFrame = new THREE.Mesh(
+      new THREE.BoxGeometry(3.68, 1.98, 0.04),
+      new THREE.MeshStandardMaterial({ color: 0x181a1c, roughness: 0.4, metalness: 0.9 })
+    );
+    boardFrame.position.set(1.1, 2.15, 3.56);
+    rootGroup.add(boardFrame);
+
+    const boardFrameTrim = new THREE.Mesh(
+      new THREE.BoxGeometry(3.64, 1.94, 0.01),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.95 })
+    );
+    boardFrameTrim.position.set(1.1, 2.15, 3.545);
+    rootGroup.add(boardFrameTrim);
+
+    // Dedicated Overhead Spotlight shining down on the Board
+    const boardSpot = new THREE.SpotLight(0xfff7e6, 4.2, 5.5, Math.PI / 3.2, 0.35, 1.1);
+    boardSpot.position.set(1.1, 3.8, 2.3);
+    boardSpot.target.position.set(1.1, 2.15, 3.54);
+    rootGroup.add(boardSpot);
+    rootGroup.add(boardSpot.target);
+
+    // Vertical Acoustic Slats on Back Wall Edges
+    for (const sx of [-3.8, -3.6, -3.4, 3.2, 3.4, 3.6, 3.8]) {
+      const bSlat = new THREE.Mesh(new THREE.BoxGeometry(0.06, 3.8, 0.03), slatMat);
+      bSlat.position.set(sx, 2.1, 3.54);
+      rootGroup.add(bSlat);
+    }
+
+    // ==========================================
+    // 3. SWAPPED WALLS: LEFT WALL (x = -4.2)
+    // (Credenza, Espresso Bar, Mini Cooler, Floating Shelves, Books, VR Headset, Plant, Lamp)
+    // ==========================================
+    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.2, 7.0), wallMat);
+    leftWall.position.set(-4.2, 2.1, 0.2);
+    rootGroup.add(leftWall);
+
+    // Credenza Snack & Espresso Bar on Left Wall
+    const barGroup = new THREE.Group();
+    barGroup.position.set(-3.4, 0.75, 0.4);
+    barGroup.rotation.y = Math.PI;
+    rootGroup.add(barGroup);
+
+    const credenza = new THREE.Mesh(
+      new THREE.BoxGeometry(0.65, 0.75, 1.4),
+      new THREE.MeshStandardMaterial({ color: 0x1c1e20, roughness: 0.5, metalness: 0.3 })
+    );
+    barGroup.add(credenza);
+
+    // Espresso Machine (Italian pump machine with portafilter)
+    const espressoMachine = new THREE.Mesh(
+      new THREE.BoxGeometry(0.26, 0.32, 0.24),
+      new THREE.MeshStandardMaterial({ color: 0x2b3035, roughness: 0.25, metalness: 0.95 })
+    );
+    espressoMachine.position.set(0, 0.53, -0.3);
+    barGroup.add(espressoMachine);
+
+    // Mini Beverage Cooler with Glowing Cans
+    const cooler = new THREE.Mesh(
+      new THREE.BoxGeometry(0.45, 0.52, 0.42),
+      new THREE.MeshStandardMaterial({ color: 0x111314, roughness: 0.35, metalness: 0.85 })
+    );
+    cooler.position.set(0, 0.63, 0.35);
+    barGroup.add(cooler);
+
+    const coolerGlass = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.4, 0.48),
+      new THREE.MeshStandardMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.35 })
+    );
+    coolerGlass.rotation.y = Math.PI / 2;
+    coolerGlass.position.set(0.226, 0.63, 0.35);
+    barGroup.add(coolerGlass);
+
+    // Floating Bookshelves on Left Wall
+    const shelfMat = new THREE.MeshStandardMaterial({ color: 0x24282a, roughness: 0.5, metalness: 0.3 });
+    const shelf1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.035, 1.8), shelfMat);
+    shelf1.position.set(-4.02, 1.6, -1.0);
+    rootGroup.add(shelf1);
+    const shelf2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.035, 1.8), shelfMat);
+    shelf2.position.set(-4.02, 2.15, -1.0);
+    rootGroup.add(shelf2);
+
+    // Books on Shelf
+    const bookColors = [0xdfff00, 0x00e5ff, 0xff007f, 0x10b981, 0x6366f1, 0xf59e0b, 0xec4899];
+    let bookZ = -1.7;
+    for (let i = 0; i < 9; i++) {
+      const bThickness = 0.03 + Math.random() * 0.02;
+      const bHeight = 0.18 + Math.random() * 0.06;
+      const book = new THREE.Mesh(
+        new THREE.BoxGeometry(0.2, bHeight, bThickness),
+        new THREE.MeshStandardMaterial({ color: bookColors[i % bookColors.length], roughness: 0.6 })
+      );
+      book.position.set(-4.02, 1.6 + bHeight / 2 + 0.018, bookZ);
+      rootGroup.add(book);
+      bookZ += bThickness + 0.02;
+    }
+
+    // VR Headset resting on Shelf 2
+    const vrHeadset = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.09, 0.11),
+      new THREE.MeshStandardMaterial({ color: 0x181a1b, roughness: 0.35, metalness: 0.7 })
+    );
+    vrHeadset.position.set(-4.02, 2.22, -0.6);
+    rootGroup.add(vrHeadset);
+
+    // Potted Lush Monstera Plant on Left Wall
+    const plantGroup = new THREE.Group();
+    plantGroup.position.set(-3.4, 0, -2.4);
+    rootGroup.add(plantGroup);
+
+    const bigPot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.16, 0.55, 16),
+      new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.3 })
+    );
+    bigPot.position.set(0, 0.275, 0);
+    plantGroup.add(bigPot);
+
+    const plantLeafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
+    for (let i = 0; i < 9; i++) {
+      const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 5), plantLeafMat);
+      const angle = (i / 9) * Math.PI * 2;
+      leaf.position.set(Math.cos(angle) * 0.12, 0.65 + (i % 3) * 0.12, Math.sin(angle) * 0.12);
+      leaf.rotation.x = Math.sin(angle) * 0.5;
+      leaf.rotation.z = -Math.cos(angle) * 0.5;
+      plantGroup.add(leaf);
+    }
+
+    // Ambient Corner Vertical Lamp on Left
+    const cornerLamp = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.015, 0.015, 2.4, 16),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9 })
+    );
+    cornerLamp.position.set(-3.9, 1.2, -2.9);
+    rootGroup.add(cornerLamp);
+
+    // ==========================================
+    // 4. SWAPPED WALLS: RIGHT WALL (x = +4.2)
+    // (Hardware Lab Pegboard, Diagnostics Lab, Tech Rack, Glowing Neon Cyber Sign)
+    // ==========================================
+    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.2, 7.0), wallMat);
+    rightWall.position.set(4.2, 2.1, 0.2);
+    rootGroup.add(rightWall);
+
+    // Glowing Neon Cyber Sign on Right Wall ("BUILD // BREACH // DEPLOY")
+    const signGroup = new THREE.Group();
+    signGroup.position.set(4.12, 2.85, 0.2);
+    signGroup.rotation.y = -Math.PI / 2;
+    rootGroup.add(signGroup);
+
+    const neonSignCanvas = document.createElement('canvas');
+    neonSignCanvas.width = 512;
+    neonSignCanvas.height = 128;
+    const nctx = neonSignCanvas.getContext('2d')!;
+    nctx.fillStyle = '#0a0d0e';
+    nctx.fillRect(0, 0, 512, 128);
+    nctx.strokeStyle = '#dfff00';
+    nctx.lineWidth = 3;
+    nctx.strokeRect(6, 6, 500, 116);
+    nctx.fillStyle = '#dfff00';
+    nctx.font = 'bold 32px "JetBrains Mono", monospace';
+    nctx.textAlign = 'center';
+    nctx.textBaseline = 'middle';
+    nctx.fillText('BUILD // BREACH // DEPLOY', 256, 52);
+    nctx.font = 'bold 16px "JetBrains Mono", monospace';
+    nctx.fillStyle = '#00e5ff';
+    nctx.fillText('HIGH-PERFORMANCE SYSTEM ARCHITECT', 256, 88);
+
+    const neonSignTex = new THREE.CanvasTexture(neonSignCanvas);
+    neonSignTex.colorSpace = THREE.SRGBColorSpace;
+    const neonSignMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.9, 0.48),
+      new THREE.MeshBasicMaterial({ map: neonSignTex, toneMapped: false })
+    );
+    signGroup.add(neonSignMesh);
+
+    // Hardware Diagnostics Pegboard on Right Wall
+    const pegGroup = new THREE.Group();
+    pegGroup.position.set(4.12, 1.9, -0.6);
+    pegGroup.rotation.y = -Math.PI / 2;
+    rootGroup.add(pegGroup);
+
+    const pegBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 1.0, 0.03),
+      new THREE.MeshStandardMaterial({ color: 0x161819, roughness: 0.7, metalness: 0.3 })
+    );
+    pegGroup.add(pegBoard);
+
+    // Digital Oscilloscope Screen on Pegboard
+    const osciCanvas = document.createElement('canvas');
+    osciCanvas.width = 256;
+    osciCanvas.height = 160;
+    const octx = osciCanvas.getContext('2d')!;
+    octx.fillStyle = '#091014';
+    octx.fillRect(0, 0, 256, 160);
+    octx.strokeStyle = 'rgba(0, 229, 255, 0.2)';
+    octx.lineWidth = 1;
+    for (let i = 0; i <= 256; i += 20) { octx.beginPath(); octx.moveTo(i, 0); octx.lineTo(i, 160); octx.stroke(); }
+    for (let i = 0; i <= 160; i += 20) { octx.beginPath(); octx.moveTo(0, i); octx.lineTo(256, i); octx.stroke(); }
+    octx.strokeStyle = '#00e5ff';
+    octx.lineWidth = 2.5;
+    octx.beginPath();
+    for (let x = 0; x < 256; x++) {
+      const y = 80 + Math.sin(x * 0.1) * 35 + Math.sin(x * 0.04) * 15;
+      if (x === 0) octx.moveTo(x, y);
+      else octx.lineTo(x, y);
+    }
+    octx.stroke();
+    octx.fillStyle = '#dfff00';
+    octx.font = 'bold 12px "JetBrains Mono", monospace';
+    octx.fillText('OSCILLOSCOPE // 2.4 GHz', 10, 20);
+
+    const osciTex = new THREE.CanvasTexture(osciCanvas);
+    osciTex.colorSpace = THREE.SRGBColorSpace;
+    const osciMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.55, 0.35),
+      new THREE.MeshBasicMaterial({ map: osciTex, toneMapped: false })
+    );
+    osciMesh.position.set(-0.35, 0.15, 0.02);
+    pegGroup.add(osciMesh);
+
+    // Wall-Mounted Tech Rack Shelf on Right Wall
+    const techShelf = new THREE.Mesh(
+      new THREE.BoxGeometry(0.32, 0.035, 1.6),
+      new THREE.MeshStandardMaterial({ color: 0x1f2224, roughness: 0.4, metalness: 0.7 })
+    );
+    techShelf.position.set(4.02, 1.45, 1.0);
+    rootGroup.add(techShelf);
+
+    // Blinking Rack-mount Switch with LED activity
+    const switchBox = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.08, 0.75),
+      new THREE.MeshStandardMaterial({ color: 0x111314, roughness: 0.3, metalness: 0.85 })
+    );
+    switchBox.position.set(4.02, 1.51, 1.0);
+    rootGroup.add(switchBox);
+
+    // Right Wall Ambient Sconce Light
+    const rightWallSconce = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.015, 0.015, 2.2, 16),
+      new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.9 })
+    );
+    rightWallSconce.position.set(3.9, 1.2, -2.9);
+    rootGroup.add(rightWallSconce);
+
+    // --- H. THE CODER BATTLESTATION DESK (SPACIOUS & SEPARATED) ---
     const deskGroup = new THREE.Group();
     rootGroup.add(deskGroup);
 
-    // Chamfered Desk Surface (High tech carbon finish)
+    // Extended Heavy-Duty Chamfered Desktop (3.4m wide - plenty of room!)
     const deskShape = new THREE.Shape();
-    deskShape.moveTo(-1.25, -0.45);
-    deskShape.lineTo(1.25, -0.45);
-    deskShape.lineTo(1.35, -0.3);
-    deskShape.lineTo(1.25, 0.45);
-    deskShape.lineTo(-1.25, 0.45);
-    deskShape.lineTo(-1.35, -0.3);
+    deskShape.moveTo(-1.7, -0.52);
+    deskShape.lineTo(1.7, -0.52);
+    deskShape.lineTo(1.78, -0.36);
+    deskShape.lineTo(1.7, 0.52);
+    deskShape.lineTo(-1.7, 0.52);
+    deskShape.lineTo(-1.78, -0.36);
     deskShape.closePath();
 
-    const extrudeSettings = {
-      steps: 1,
-      depth: 0.04,
-      bevelEnabled: true,
-      bevelThickness: 0.015,
-      bevelSize: 0.015,
-      bevelSegments: 2
-    };
-    const deskTopGeo = new THREE.ExtrudeGeometry(deskShape, extrudeSettings);
+    const deskTopGeo = new THREE.ExtrudeGeometry(deskShape, {
+      steps: 1, depth: 0.045, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 2
+    });
     deskTopGeo.rotateX(Math.PI / 2);
 
-    const deskMat = new THREE.MeshStandardMaterial({
-      color: 0x161818,
-      roughness: 0.35,
-      metalness: 0.8
-    });
+    const deskMat = new THREE.MeshStandardMaterial({ color: 0x17191a, roughness: 0.38, metalness: 0.65 });
     const deskTop = new THREE.Mesh(deskTopGeo, deskMat);
     deskTop.position.set(0, 0.85, -0.2);
     deskTop.castShadow = !isSoftwareGl;
     deskTop.receiveShadow = !isSoftwareGl;
     deskGroup.add(deskTop);
 
-    // Yellow glowing front edge
-    const edgeTrimGeo = new THREE.BoxGeometry(2.5, 0.012, 0.02);
-    const edgeTrimMat = new THREE.MeshStandardMaterial({
-      color: 0xdfff00,
-      emissive: 0xdfff00,
-      emissiveIntensity: 0.85,
-      roughness: 0.2
-    });
-    const edgeTrim = new THREE.Mesh(edgeTrimGeo, edgeTrimMat);
-    edgeTrim.position.set(0, 0.85, 0.25);
+    // Front edge RGB lightstrip
+    const edgeTrim = new THREE.Mesh(
+      new THREE.BoxGeometry(3.38, 0.012, 0.02),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9, roughness: 0.2 })
+    );
+    edgeTrim.position.set(0, 0.85, 0.32);
     deskGroup.add(edgeTrim);
 
-    // Aerodynamic Carbon Legs
-    const legGeo = new THREE.BoxGeometry(0.06, 0.85, 0.7);
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x222424, roughness: 0.4, metalness: 0.85 });
-    const legL = new THREE.Mesh(legGeo, legMat);
-    legL.position.set(-1.1, 0.425, -0.2);
+    // Steel Legs
+    const legSteelMat = new THREE.MeshStandardMaterial({ color: 0x1f2222, roughness: 0.45, metalness: 0.85 });
+    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.85, 0.68), legSteelMat);
+    legL.position.set(-1.42, 0.425, -0.2);
     deskGroup.add(legL);
-
-    const legR = new THREE.Mesh(legGeo, legMat);
-    legR.position.set(1.1, 0.425, -0.2);
+    const legR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.85, 0.68), legSteelMat);
+    legR.position.set(1.42, 0.425, -0.2);
     deskGroup.add(legR);
 
-    // --- C. Holographic Triple Monitors with Live Canvas Content ---
-    // 1. Center Monitor (The portal into the portfolio!)
+    // --- I. TRIPLE MONITORS (VIBRANT SELF-LUMINOUS SCREENS WITH ZERO CLIPPING) ---
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x111314, roughness: 0.45, metalness: 0.9 });
+
+    // 1. Center Monitor (Rooted at x = 0, y = 1.35, z = -0.42)
+    const centerMonitorGroup = new THREE.Group();
+    centerMonitorGroup.position.set(0, 1.35, -0.42);
+    deskGroup.add(centerMonitorGroup);
+
     const codeCanvas = document.createElement('canvas');
     codeCanvas.width = 1024;
     codeCanvas.height = 640;
@@ -349,635 +967,213 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     codeTexture.colorSpace = THREE.SRGBColorSpace;
     mainScreenTextureRef.current = codeTexture;
 
-    const screenMatCenter = new THREE.MeshStandardMaterial({
-      map: codeTexture,
-      emissiveMap: codeTexture,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.95,
-      roughness: 0.15,
-      metalness: 0.1
-    });
+    // Outer Bezel Frame
+    const frameCenter = new THREE.Mesh(new THREE.BoxGeometry(1.10, 0.66, 0.025), frameMat);
+    frameCenter.position.set(0, 0, -0.012);
+    centerMonitorGroup.add(frameCenter);
 
-    const screenGeoCenter = new THREE.PlaneGeometry(1.05, 0.62);
-    const screenCenter = new THREE.Mesh(screenGeoCenter, screenMatCenter);
-    screenCenter.position.set(0, 1.35, -0.5);
-    deskGroup.add(screenCenter);
+    // Glowing Self-Luminous Screen Face (Pure MeshBasicMaterial = 100% visible, zero shadow, zero glare)
+    const screenCenter = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.07, 0.63),
+      new THREE.MeshBasicMaterial({ map: codeTexture, toneMapped: false })
+    );
+    screenCenter.position.set(0, 0, 0.003);
+    centerMonitorGroup.add(screenCenter);
 
-    // Monitor Bezel Frame
-    const frameGeoCenter = new THREE.BoxGeometry(1.08, 0.65, 0.02);
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x111313, roughness: 0.5, metalness: 0.9 });
-    const frameCenter = new THREE.Mesh(frameGeoCenter, frameMat);
-    frameCenter.position.set(0, 1.35, -0.51);
-    deskGroup.add(frameCenter);
+    // VESA Mount Plate & Rear Arm (Completely BEHIND screen at local z = -0.03 to -0.07)
+    const vesaPlate = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.02), frameMat);
+    vesaPlate.position.set(0, 0, -0.03);
+    centerMonitorGroup.add(vesaPlate);
 
-    // Monitor Stand
-    const standGeo = new THREE.CylinderGeometry(0.02, 0.025, 0.45, 12);
-    const standMesh = new THREE.Mesh(standGeo, frameMat);
-    standMesh.position.set(0, 1.05, -0.52);
-    deskGroup.add(standMesh);
+    const standPole = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.026, 0.48, 16), frameMat);
+    standPole.position.set(0, -0.25, -0.07);
+    centerMonitorGroup.add(standPole);
 
-    // 2. Left Monitor (Curved Angle)
-    const leftCanvas = document.createElement('canvas');
-    leftCanvas.width = 512;
-    leftCanvas.height = 420;
-    const lctx = leftCanvas.getContext('2d')!;
-    const leftTexture = new THREE.CanvasTexture(leftCanvas);
-    leftTexture.colorSpace = THREE.SRGBColorSpace;
-    sideScreenTextureRef.current = leftTexture;
+    // BenQ-style Slim Screen Lightbar
+    const lightBar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.013, 0.013, 0.52, 16),
+      new THREE.MeshStandardMaterial({ color: 0x222424, roughness: 0.3, metalness: 0.85 })
+    );
+    lightBar.geometry.rotateZ(Math.PI / 2);
+    lightBar.position.set(0, 0.35, 0.02);
+    centerMonitorGroup.add(lightBar);
 
-    const screenMatSide = new THREE.MeshStandardMaterial({
-      map: leftTexture,
-      emissiveMap: leftTexture,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.88,
-      roughness: 0.2
-    });
+    // 2. Left Vertical Monitor - AI Computer Vision & Neural Image Segmentation
+    // Rooted at x = -0.76, y = 1.35, z = -0.38, angled cleanly inward toward user
+    const leftMonitorGroup = new THREE.Group();
+    leftMonitorGroup.position.set(-0.76, 1.35, -0.38);
+    leftMonitorGroup.rotation.y = 0.42; // ~24 deg inward
+    deskGroup.add(leftMonitorGroup);
 
-    const screenGeoSide = new THREE.PlaneGeometry(0.72, 0.52);
-    const screenLeft = new THREE.Mesh(screenGeoSide, screenMatSide);
-    screenLeft.position.set(-0.88, 1.35, -0.38);
-    screenLeft.rotation.y = Math.PI / 5.5;
-    deskGroup.add(screenLeft);
+    const vertCanvas = document.createElement('canvas');
+    vertCanvas.width = 512;
+    vertCanvas.height = 800;
+    const vctx = vertCanvas.getContext('2d')!;
+    const vertTexture = new THREE.CanvasTexture(vertCanvas);
+    vertTexture.colorSpace = THREE.SRGBColorSpace;
+    vertScreenTextureRef.current = vertTexture;
 
-    const frameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.55, 0.02), frameMat);
-    frameLeft.position.set(-0.88, 1.35, -0.39);
-    frameLeft.rotation.y = Math.PI / 5.5;
-    deskGroup.add(frameLeft);
+    const frameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.78, 0.025), frameMat);
+    frameLeft.position.set(0, 0, -0.012);
+    leftMonitorGroup.add(frameLeft);
 
-    // 3. Right Monitor
-    const screenRight = new THREE.Mesh(screenGeoSide, screenMatSide);
-    screenRight.position.set(0.88, 1.35, -0.38);
-    screenRight.rotation.y = -Math.PI / 5.5;
-    deskGroup.add(screenRight);
+    const screenLeft = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.47, 0.75),
+      new THREE.MeshBasicMaterial({ map: vertTexture, toneMapped: false })
+    );
+    screenLeft.position.set(0, 0, 0.003);
+    leftMonitorGroup.add(screenLeft);
 
-    const frameRight = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.55, 0.02), frameMat);
-    frameRight.position.set(0.88, 1.35, -0.39);
-    frameRight.rotation.y = -Math.PI / 5.5;
-    deskGroup.add(frameRight);
+    // 3. Right Horizontal Monitor - Cluster Telemetry & Radar Cockpit
+    // Rooted at x = 0.76, y = 1.35, z = -0.38, angled cleanly inward toward user
+    const rightMonitorGroup = new THREE.Group();
+    rightMonitorGroup.position.set(0.76, 1.35, -0.38);
+    rightMonitorGroup.rotation.y = -0.42; // ~-24 deg inward
+    deskGroup.add(rightMonitorGroup);
 
-    // --- D. Mechanical Cyber Keyboard & Trackpad ---
-    const kbBaseGeo = new THREE.BoxGeometry(0.48, 0.015, 0.17);
-    const kbBaseMat = new THREE.MeshStandardMaterial({ color: 0x181a1a, roughness: 0.4, metalness: 0.7 });
-    const kbBase = new THREE.Mesh(kbBaseGeo, kbBaseMat);
-    kbBase.position.set(0, 0.88, 0.02);
-    deskGroup.add(kbBase);
+    const sideCanvas = document.createElement('canvas');
+    sideCanvas.width = 640;
+    sideCanvas.height = 480;
+    const lctx = sideCanvas.getContext('2d')!;
+    const sideTexture = new THREE.CanvasTexture(sideCanvas);
+    sideTexture.colorSpace = THREE.SRGBColorSpace;
+    sideScreenTextureRef.current = sideTexture;
 
-    // Glowing key matrix with InstancedMesh
-    const keyGeo = new THREE.BoxGeometry(0.022, 0.01, 0.022);
-    const keyMat = new THREE.MeshStandardMaterial({
-      color: 0x242828,
-      emissive: 0xdfff00,
-      emissiveIntensity: 0.4,
-      roughness: 0.3
-    });
-    const keyRows = 5;
-    const keyCols = 14;
-    const keyMesh = new THREE.InstancedMesh(keyGeo, keyMat, keyRows * keyCols);
-    const dummy = new THREE.Object3D();
-    let keyIdx = 0;
-    for (let r = 0; r < keyRows; r++) {
-      for (let c = 0; c < keyCols; c++) {
-        const kx = -0.2 + c * 0.03;
-        const kz = -0.055 + r * 0.028;
-        dummy.position.set(kx, 0.895, 0.02 + kz);
-        dummy.updateMatrix();
-        keyMesh.setMatrixAt(keyIdx++, dummy.matrix);
-      }
-    }
-    keyMesh.instanceMatrix.needsUpdate = true;
-    deskGroup.add(keyMesh);
+    const frameRight = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.54, 0.025), frameMat);
+    frameRight.position.set(0, 0, -0.012);
+    rightMonitorGroup.add(frameRight);
 
-    // Cyber Trackpad
-    const padGeo = new THREE.PlaneGeometry(0.24, 0.18);
-    const padMat = new THREE.MeshStandardMaterial({ color: 0x141616, roughness: 0.3, metalness: 0.6 });
-    const pad = new THREE.Mesh(padGeo, padMat);
-    pad.rotation.x = -Math.PI / 2;
-    pad.position.set(0.38, 0.88, 0.02);
-    deskGroup.add(pad);
+    const screenRight = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.71, 0.51),
+      new THREE.MeshBasicMaterial({ map: sideTexture, toneMapped: false })
+    );
+    screenRight.position.set(0, 0, 0.003);
+    rightMonitorGroup.add(screenRight);
 
-    // Cyber Mug
-    const mugGeo = new THREE.CylinderGeometry(0.035, 0.03, 0.08, 16);
-    const mugMat = new THREE.MeshStandardMaterial({ color: 0x121414, roughness: 0.4, metalness: 0.8 });
-    const mug = new THREE.Mesh(mugGeo, mugMat);
-    mug.position.set(-0.38, 0.91, -0.05);
-    deskGroup.add(mug);
+    // --- J. STUDIO SPEAKERS (FLANKING MONITORS CLEANLY - ZERO OVERLAP) ---
+    const speakerMat = new THREE.MeshStandardMaterial({ color: 0x161819, roughness: 0.45, metalness: 0.4 });
+    const wooferMat = new THREE.MeshStandardMaterial({ color: 0xdfff00, roughness: 0.35, metalness: 0.3 });
+    const tweeterMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2, metalness: 0.9 });
 
-    const mugBandGeo = new THREE.CylinderGeometry(0.036, 0.036, 0.015, 16);
-    const mugBandMat = new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.6 });
-    const mugBand = new THREE.Mesh(mugBandGeo, mugBandMat);
-    mugBand.position.set(-0.38, 0.93, -0.05);
-    deskGroup.add(mugBand);
+    const createSpeaker = (xPos: number, zPos: number, yRot: number) => {
+      const sGroup = new THREE.Group();
+      sGroup.position.set(xPos, 0.98, zPos);
+      sGroup.rotation.y = yRot;
 
-    // --- E. Cyber Ergonomic Cockpit Chair ---
-    const chairGroup = new THREE.Group();
-    rootGroup.add(chairGroup);
-    chairGroup.position.set(0, 0, 0.46);
+      const pad = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.025, 0.2), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 }));
+      pad.position.set(0, -0.125, 0);
+      sGroup.add(pad);
 
-    const seatGeo = new THREE.BoxGeometry(0.52, 0.08, 0.5);
-    const seatMat = new THREE.MeshStandardMaterial({ color: 0x1c1e1e, roughness: 0.7, metalness: 0.2 });
-    const seat = new THREE.Mesh(seatGeo, seatMat);
-    seat.position.set(0, 0.65, 0);
-    chairGroup.add(seat);
+      const cab = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.26, 0.18), speakerMat);
+      sGroup.add(cab);
 
-    const backGeo = new THREE.BoxGeometry(0.46, 0.64, 0.06);
-    const backMat = new THREE.MeshStandardMaterial({ color: 0x181a1a, roughness: 0.6, metalness: 0.3 });
-    const back = new THREE.Mesh(backGeo, backMat);
-    back.position.set(0, 1.0, 0.23);
-    back.rotation.x = -0.08;
-    chairGroup.add(back);
+      const woofer = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.035, 0.015, 16), wooferMat);
+      woofer.rotation.x = Math.PI / 2;
+      woofer.position.set(0, -0.035, 0.09);
+      sGroup.add(woofer);
 
-    const headrestGeo = new THREE.BoxGeometry(0.3, 0.16, 0.08);
-    const headrest = new THREE.Mesh(headrestGeo, backMat);
-    headrest.position.set(0, 1.38, 0.26);
-    chairGroup.add(headrest);
+      const tweeter = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 12), tweeterMat);
+      tweeter.position.set(0, 0.065, 0.09);
+      sGroup.add(tweeter);
 
-    // ==========================================
-    // --- F. UPGRADED HIGH-FIDELITY ANIME FIGURE ---
-    // (Detailed anime proportions, expressive face, layered hair & mecha ears)
-    // ==========================================
-    const animeFigureGroup = new THREE.Group();
-    rootGroup.add(animeFigureGroup);
-    animeFigureGroup.position.set(0, 0.68, 0.42);
-
-    // Porcelain Anime Skin
-    const skinMat = new THREE.MeshStandardMaterial({
-      color: 0xffede3,
-      roughness: 0.55,
-      metalness: 0.04
-    });
-
-    // Dark cyberpunk tactical hoodie
-    const jacketMat = new THREE.MeshStandardMaterial({
-      color: 0x131516,
-      roughness: 0.65,
-      metalness: 0.3
-    });
-
-    const trimMat = new THREE.MeshStandardMaterial({
-      color: 0xdfff00,
-      emissive: 0xdfff00,
-      emissiveIntensity: 0.65,
-      roughness: 0.3
-    });
-
-    // 1. Seated Legs
-    const thighGeo = new THREE.CylinderGeometry(0.068, 0.062, 0.38, 12);
-    thighGeo.rotateX(Math.PI / 2);
-    const legLMesh = new THREE.Mesh(thighGeo, jacketMat);
-    legLMesh.position.set(-0.12, 0.03, -0.15);
-    animeFigureGroup.add(legLMesh);
-
-    const legRMesh = new THREE.Mesh(thighGeo, jacketMat);
-    legRMesh.position.set(0.12, 0.03, -0.15);
-    animeFigureGroup.add(legRMesh);
-
-    const shinGeo = new THREE.CylinderGeometry(0.052, 0.046, 0.45, 12);
-    const shinL = new THREE.Mesh(shinGeo, jacketMat);
-    shinL.position.set(-0.12, -0.32, -0.32);
-    animeFigureGroup.add(shinL);
-
-    const shinR = new THREE.Mesh(shinGeo, jacketMat);
-    shinR.position.set(0.12, -0.32, -0.32);
-    animeFigureGroup.add(shinR);
-
-    // Cyber high-top sneakers with yellow soles
-    const shoeGeo = new THREE.BoxGeometry(0.088, 0.07, 0.18);
-    const shoeL = new THREE.Mesh(shoeGeo, trimMat);
-    shoeL.position.set(-0.12, -0.58, -0.28);
-    animeFigureGroup.add(shoeL);
-
-    const shoeR = new THREE.Mesh(shoeGeo, trimMat);
-    shoeR.position.set(0.12, -0.58, -0.28);
-    animeFigureGroup.add(shoeR);
-
-    // 2. Torso (Oversized Cyber Techwear Hoodie)
-    const torsoGroup = new THREE.Group();
-    animeFigureGroup.add(torsoGroup);
-    torsoGroup.position.set(0, 0.15, 0);
-
-    const chestGeo = new THREE.CylinderGeometry(0.13, 0.105, 0.34, 16);
-    const chest = new THREE.Mesh(chestGeo, jacketMat);
-    chest.position.set(0, 0.16, 0);
-    chest.castShadow = !isSoftwareGl;
-    torsoGroup.add(chest);
-
-    // High ribbed tactical collar
-    const collarGeo = new THREE.TorusGeometry(0.095, 0.04, 12, 24);
-    collarGeo.rotateX(Math.PI / 2);
-    const collar = new THREE.Mesh(collarGeo, jacketMat);
-    collar.position.set(0, 0.34, 0);
-    torsoGroup.add(collar);
-
-    // Cyber choker with yellow LED node
-    const chokerGeo = new THREE.CylinderGeometry(0.046, 0.046, 0.02, 16);
-    const chokerMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.8 });
-    const choker = new THREE.Mesh(chokerGeo, chokerMat);
-    choker.position.set(0, 0.38, 0);
-    torsoGroup.add(choker);
-
-    const chokerNodeGeo = new THREE.BoxGeometry(0.015, 0.015, 0.01);
-    const chokerNode = new THREE.Mesh(chokerNodeGeo, trimMat);
-    chokerNode.position.set(0, 0.38, 0.048);
-    torsoGroup.add(chokerNode);
-
-    // Tactical harness straps
-    const strapL = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.28, 0.01), trimMat);
-    strapL.position.set(-0.06, 0.17, 0.115);
-    torsoGroup.add(strapL);
-
-    const strapR = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.28, 0.01), trimMat);
-    strapR.position.set(0.06, 0.17, 0.115);
-    torsoGroup.add(strapR);
-
-    // 3. Head & Expressive Anime Face
-    const headGroup = new THREE.Group();
-    headGroupRef.current = headGroup;
-    headGroup.position.set(0, 0.44, 0);
-    torsoGroup.add(headGroup);
-
-    // Anime Head with tapered chin
-    const headGeo = new THREE.SphereGeometry(0.12, 24, 20);
-    headGeo.scale(0.96, 1.14, 0.96);
-    const head = new THREE.Mesh(headGeo, skinMat);
-    head.position.set(0, 0.07, 0);
-    headGroup.add(head);
-
-    // Cute anime chin wedge
-    const chinGeo = new THREE.ConeGeometry(0.04, 0.06, 4);
-    chinGeo.rotateX(Math.PI);
-    const chin = new THREE.Mesh(chinGeo, skinMat);
-    chin.position.set(0, -0.05, 0.06);
-    headGroup.add(chin);
-
-    // --- HIGH RESOLUTION ANIME FACE CANVAS TEXTURE ---
-    // Generates beautiful anime eyes with gradients, highlights, blush, and eyelashes
-    const faceCanvas = document.createElement('canvas');
-    faceCanvas.width = 512;
-    faceCanvas.height = 512;
-    faceCanvasRef.current = faceCanvas;
-    const fCtx = faceCanvas.getContext('2d')!;
-
-    const drawAnimeFace = (blinkProgress: number = 0) => {
-      fCtx.clearRect(0, 0, 512, 512);
-
-      // Cheeks Blush
-      const blushGradL = fCtx.createRadialGradient(140, 310, 5, 140, 310, 45);
-      blushGradL.addColorStop(0, 'rgba(255, 130, 160, 0.45)');
-      blushGradL.addColorStop(1, 'rgba(255, 130, 160, 0)');
-      fCtx.fillStyle = blushGradL;
-      fCtx.fillRect(90, 260, 100, 100);
-
-      const blushGradR = fCtx.createRadialGradient(372, 310, 5, 372, 310, 45);
-      blushGradR.addColorStop(0, 'rgba(255, 130, 160, 0.45)');
-      blushGradR.addColorStop(1, 'rgba(255, 130, 160, 0)');
-      fCtx.fillStyle = blushGradR;
-      fCtx.fillRect(322, 260, 100, 100);
-
-      // Cute anime nose dot
-      fCtx.fillStyle = 'rgba(220, 140, 140, 0.7)';
-      fCtx.beginPath();
-      fCtx.arc(256, 315, 3.5, 0, Math.PI * 2);
-      fCtx.fill();
-
-      // Focused anime lips with subtle smile
-      fCtx.strokeStyle = 'rgba(210, 110, 120, 0.85)';
-      fCtx.lineWidth = 3.5;
-      fCtx.lineCap = 'round';
-      fCtx.beginPath();
-      fCtx.arc(256, 345, 16, 0.15 * Math.PI, 0.85 * Math.PI);
-      fCtx.stroke();
-
-      // Draw Anime Eyes (Left eye center ~170, Right eye center ~342)
-      const eyeCenters = [170, 342];
-      const eyeY = 240;
-
-      eyeCenters.forEach((cx, idx) => {
-        const isLeft = idx === 0;
-
-        // Eyebrows
-        fCtx.strokeStyle = '#22252a';
-        fCtx.lineWidth = 4;
-        fCtx.beginPath();
-        if (isLeft) {
-          fCtx.moveTo(cx - 45, eyeY - 60);
-          fCtx.quadraticCurveTo(cx, eyeY - 72, cx + 45, eyeY - 55);
-        } else {
-          fCtx.moveTo(cx - 45, eyeY - 55);
-          fCtx.quadraticCurveTo(cx, eyeY - 72, cx + 45, eyeY - 60);
-        }
-        fCtx.stroke();
-
-        // If blinking
-        if (blinkProgress > 0.6) {
-          // Closed eyelid line
-          fCtx.strokeStyle = '#181a1e';
-          fCtx.lineWidth = 6;
-          fCtx.beginPath();
-          fCtx.arc(cx, eyeY, 40, 0.2 * Math.PI, 0.8 * Math.PI);
-          fCtx.stroke();
-          return;
-        }
-
-        // Eye White (Sclera)
-        fCtx.fillStyle = '#ffffff';
-        fCtx.beginPath();
-        fCtx.ellipse(cx, eyeY, 44, 48 * (1 - blinkProgress * 0.8), 0, 0, Math.PI * 2);
-        fCtx.fill();
-
-        // Iris Gradient (Deep violet-black to electric Norris Yellow/Cyan)
-        fCtx.save();
-        fCtx.beginPath();
-        fCtx.ellipse(cx, eyeY + 4, 34, 40 * (1 - blinkProgress * 0.8), 0, 0, Math.PI * 2);
-        fCtx.clip();
-
-        const irisGrad = fCtx.createLinearGradient(cx, eyeY - 30, cx, eyeY + 40);
-        irisGrad.addColorStop(0, '#101222');
-        irisGrad.addColorStop(0.4, '#1b2640');
-        irisGrad.addColorStop(0.7, '#00d4ff');
-        irisGrad.addColorStop(1, '#dfff00');
-        fCtx.fillStyle = irisGrad;
-        fCtx.fillRect(cx - 40, eyeY - 40, 80, 80);
-
-        // Pupil
-        fCtx.fillStyle = '#0a0b12';
-        fCtx.beginPath();
-        fCtx.ellipse(cx, eyeY + 6, 16, 20 * (1 - blinkProgress * 0.8), 0, 0, Math.PI * 2);
-        fCtx.fill();
-
-        // Cyber iris ring glow
-        fCtx.strokeStyle = 'rgba(223, 255, 0, 0.6)';
-        fCtx.lineWidth = 2;
-        fCtx.stroke();
-
-        // Specular Catchlights (Iconic Anime Eye Glint)
-        fCtx.fillStyle = '#ffffff';
-        fCtx.beginPath();
-        fCtx.ellipse(cx - 10, eyeY - 8, 9, 13 * (1 - blinkProgress * 0.8), -0.2, 0, Math.PI * 2);
-        fCtx.fill();
-
-        fCtx.beginPath();
-        fCtx.arc(cx + 12, eyeY + 12, 5, 0, Math.PI * 2);
-        fCtx.fill();
-
-        fCtx.restore();
-
-        // Upper Anime Eyelash curve with wing
-        fCtx.strokeStyle = '#121418';
-        fCtx.lineWidth = 7;
-        fCtx.lineCap = 'round';
-        fCtx.beginPath();
-        fCtx.arc(cx, eyeY - 4, 44, 1.15 * Math.PI, 1.85 * Math.PI);
-        fCtx.stroke();
-
-        // Eyelash wing flick
-        fCtx.lineWidth = 5;
-        fCtx.beginPath();
-        if (isLeft) {
-          fCtx.moveTo(cx - 38, eyeY - 20);
-          fCtx.lineTo(cx - 52, eyeY - 30);
-        } else {
-          fCtx.moveTo(cx + 38, eyeY - 20);
-          fCtx.lineTo(cx + 52, eyeY - 30);
-        }
-        fCtx.stroke();
-
-        // Lower eyelash hint
-        fCtx.strokeStyle = '#343840';
-        fCtx.lineWidth = 2.5;
-        fCtx.beginPath();
-        fCtx.arc(cx, eyeY + 18, 30, 0.3 * Math.PI, 0.7 * Math.PI);
-        fCtx.stroke();
-      });
+      return sGroup;
     };
 
-    drawAnimeFace(0);
+    // Left Speaker clearly flanking left monitor with comfortable margin
+    deskGroup.add(createSpeaker(-1.18, -0.20, Math.PI / 7));
+    // Right Speaker clearly flanking right monitor (at x = 1.18, 0.12m clear from screen edge)
+    deskGroup.add(createSpeaker(1.18, -0.20, -Math.PI / 7));
 
-    const faceTex = new THREE.CanvasTexture(faceCanvas);
-    faceTex.colorSpace = THREE.SRGBColorSpace;
-    faceTexRef.current = faceTex;
+    // --- K. PC RIG / THE CPU (PLACED AT X = 1.54, ZERO OVERLAP WITH SPEAKER AT X = 1.18) ---
+    // A full 36 cm of clear, open desk space between Speaker (x = 1.18) and PC Case (x = 1.54)!
+    const pcGroup = new THREE.Group();
+    pcGroup.position.set(1.54, 1.10, -0.06);
+    pcGroup.rotation.y = -Math.PI / 7; // Angled 25 deg inward
+    deskGroup.add(pcGroup);
 
-    const facePlaneGeo = new THREE.PlaneGeometry(0.19, 0.19);
-    const faceMat = new THREE.MeshBasicMaterial({
-      map: faceTex,
-      transparent: true,
-      depthWrite: false
+    // PC Chassis Frame
+    const pcCaseMat = new THREE.MeshStandardMaterial({ color: 0x111314, roughness: 0.35, metalness: 0.85 });
+    const pcBack = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.45, 0.02), pcCaseMat);
+    pcBack.position.set(0, 0, -0.21);
+    pcGroup.add(pcBack);
+    const pcTop = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.02, 0.44), pcCaseMat);
+    pcTop.position.set(0, 0.22, 0);
+    pcGroup.add(pcTop);
+    const pcBottom = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.02, 0.44), pcCaseMat);
+    pcBottom.position.set(0, -0.22, 0);
+    pcGroup.add(pcBottom);
+
+    // Tempered Glass Panels
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0x111618, transparent: true, opacity: 0.3, roughness: 0.05, metalness: 0.2
     });
-    const faceMesh = new THREE.Mesh(facePlaneGeo, faceMat);
-    faceMesh.position.set(0, 0.08, 0.106);
-    headGroup.add(faceMesh);
+    const glassSide = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.44), glassMat);
+    glassSide.rotation.y = -Math.PI / 2;
+    glassSide.position.set(-0.108, 0, 0);
+    pcGroup.add(glassSide);
 
-    // --- TRANSLUCENT HOLOGRAPHIC GOGGLES / VISOR ---
-    // Stylish anime hacker visor resting over her brow so her anime eyes shine through!
-    const visorGeo = new THREE.BoxGeometry(0.18, 0.038, 0.03);
-    const visorMat = new THREE.MeshStandardMaterial({
-      color: 0xdfff00,
-      emissive: 0xdfff00,
-      emissiveIntensity: 0.7,
-      transparent: true,
-      opacity: 0.45,
-      roughness: 0.1,
-      metalness: 0.6
-    });
-    const visor = new THREE.Mesh(visorGeo, visorMat);
-    visor.position.set(0, 0.115, 0.115);
-    headGroup.add(visor);
+    // Illuminated GPU
+    const gpuMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.05, 0.09, 0.26),
+      new THREE.MeshStandardMaterial({ color: 0x24282a, roughness: 0.35, metalness: 0.85 })
+    );
+    gpuMesh.position.set(0.0, -0.04, 0.02);
+    pcGroup.add(gpuMesh);
 
-    // Glowing edge frame for visor
-    const visorFrameGeo = new THREE.BoxGeometry(0.184, 0.008, 0.032);
-    const visorFrame = new THREE.Mesh(visorFrameGeo, trimMat);
-    visorFrame.position.set(0, 0.134, 0.115);
-    headGroup.add(visorFrame);
+    const gpuRgb = new THREE.Mesh(
+      new THREE.BoxGeometry(0.052, 0.015, 0.24),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 1.0 })
+    );
+    gpuRgb.position.set(0.0, 0.012, 0.02);
+    pcGroup.add(gpuRgb);
 
-    // --- STYLIZED LAYERED ANIME HAIR ---
-    // Deep obsidian-indigo hair with neon Norris Yellow edge tips
-    const hairMat = new THREE.MeshStandardMaterial({
-      color: 0x181a24, // Midnight indigo anime hair
-      roughness: 0.45,
-      metalness: 0.25
-    });
+    // RGB RAM Sticks
+    for (let i = 0; i < 4; i++) {
+      const ram = new THREE.Mesh(
+        new THREE.BoxGeometry(0.01, 0.045, 0.08),
+        new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 1.0 })
+      );
+      ram.position.set(0.02 + i * 0.014, 0.10, -0.05);
+      pcGroup.add(ram);
+    }
 
-    const hairHighlightMat = new THREE.MeshStandardMaterial({
-      color: 0xdfff00,
-      emissive: 0xdfff00,
-      emissiveIntensity: 0.6,
-      roughness: 0.3
-    });
+    // Liquid CPU Cooler Pump
+    const cpuPump = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.03, 0.025, 16),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.85 })
+    );
+    cpuPump.rotation.z = Math.PI / 2;
+    cpuPump.position.set(0.04, 0.07, 0.02);
+    pcGroup.add(cpuPump);
 
-    // 1. Hair Base Dome
-    const hairBaseGeo = new THREE.SphereGeometry(0.134, 18, 18, 0, Math.PI * 2, 0, Math.PI * 0.7);
-    const hairBase = new THREE.Mesh(hairBaseGeo, hairMat);
-    hairBase.position.set(0, 0.08, -0.015);
-    headGroup.add(hairBase);
-
-    // 2. Front Bangs (7 distinct geometric tapered tufts)
-    const bangAngles = [-0.08, -0.05, -0.02, 0.01, 0.04, 0.07, 0.09];
-    bangAngles.forEach((bx, idx) => {
-      const bGeo = new THREE.ConeGeometry(0.026, 0.13, 5);
-      bGeo.rotateX(Math.PI * 0.82);
-      const isHighlighted = idx === 1 || idx === 5;
-      const bangMesh = new THREE.Mesh(bGeo, isHighlighted ? hairHighlightMat : hairMat);
-      bangMesh.position.set(bx, 0.165, 0.095);
-      bangMesh.rotation.z = bx * 2.8;
-      headGroup.add(bangMesh);
+    // Spinning Front Fans
+    const fanGeo = new THREE.CylinderGeometry(0.052, 0.052, 0.014, 12);
+    fanGeo.rotateX(Math.PI / 2);
+    const fanMat = new THREE.MeshStandardMaterial({
+      color: 0x282c2d, emissive: 0xdfff00, emissiveIntensity: 0.85, roughness: 0.25
     });
 
-    // 3. Twin Side Locks (Iconic anime face-framing strands)
-    const sideLockGeo = new THREE.ConeGeometry(0.025, 0.22, 5);
-    sideLockGeo.rotateX(Math.PI);
+    const frontFan1 = new THREE.Mesh(fanGeo, fanMat);
+    frontFan1.position.set(0, 0.09, 0.20);
+    pcGroup.add(frontFan1);
+    pcFansRef.current.push(frontFan1);
 
-    const lockL = new THREE.Mesh(sideLockGeo, hairMat);
-    lockL.position.set(-0.115, 0.04, 0.06);
-    lockL.rotation.z = -0.08;
-    headGroup.add(lockL);
+    const frontFan2 = new THREE.Mesh(fanGeo, fanMat);
+    frontFan2.position.set(0, -0.09, 0.20);
+    pcGroup.add(frontFan2);
+    pcFansRef.current.push(frontFan2);
 
-    const lockR = new THREE.Mesh(sideLockGeo, hairMat);
-    lockR.position.set(0.115, 0.04, 0.06);
-    lockR.rotation.z = 0.08;
-    headGroup.add(lockR);
-
-    // Yellow hairclips on side locks
-    const clipGeo = new THREE.BoxGeometry(0.015, 0.03, 0.01);
-    const clipL = new THREE.Mesh(clipGeo, trimMat);
-    clipL.position.set(-0.12, 0.12, 0.07);
-    headGroup.add(clipL);
-
-    const clipR = new THREE.Mesh(clipGeo, trimMat);
-    clipR.position.set(0.12, 0.12, 0.07);
-    headGroup.add(clipR);
-
-    // 4. Iconic Ahoge (Anime Antenna Hair Tuft)
-    const ahogeGroup = new THREE.Group();
-    ahogeRef.current = ahogeGroup;
-    ahogeGroup.position.set(0, 0.22, 0.02);
-    headGroup.add(ahogeGroup);
-
-    const ahogeGeo = new THREE.CylinderGeometry(0.006, 0.014, 0.12, 8);
-    ahogeGeo.rotateZ(Math.PI / 4);
-    const ahogeMesh = new THREE.Mesh(ahogeGeo, hairHighlightMat);
-    ahogeMesh.position.set(0.04, 0.04, 0);
-    ahogeGroup.add(ahogeMesh);
-
-    // 5. Back Hair Flow
-    const backHairGeo = new THREE.ConeGeometry(0.13, 0.28, 7);
-    backHairGeo.rotateX(-Math.PI * 0.85);
-    const backHair = new THREE.Mesh(backHairGeo, hairMat);
-    backHair.position.set(0, 0.04, -0.11);
-    headGroup.add(backHair);
-
-    // --- MECHA CAT-EAR CYBER ANIME HEADSET ---
-    const phoneGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.03, 16);
-    phoneGeo.rotateZ(Math.PI / 2);
-    const phoneMat = new THREE.MeshStandardMaterial({ color: 0x121414, roughness: 0.3, metalness: 0.85 });
-
-    const phoneL = new THREE.Mesh(phoneGeo, phoneMat);
-    phoneL.position.set(-0.125, 0.08, 0);
-    headGroup.add(phoneL);
-
-    const phoneRingGeo = new THREE.TorusGeometry(0.042, 0.006, 8, 16);
-    phoneRingGeo.rotateY(Math.PI / 2);
-    const phoneRingL = new THREE.Mesh(phoneRingGeo, trimMat);
-    phoneRingL.position.set(-0.141, 0.08, 0);
-    headGroup.add(phoneRingL);
-
-    const phoneR = new THREE.Mesh(phoneGeo, phoneMat);
-    phoneR.position.set(0.125, 0.08, 0);
-    headGroup.add(phoneR);
-
-    const phoneRingR = new THREE.Mesh(phoneRingGeo, trimMat);
-    phoneRingR.position.set(0.141, 0.08, 0);
-    headGroup.add(phoneRingR);
-
-    const bandGeo = new THREE.TorusGeometry(0.136, 0.012, 8, 16, Math.PI);
-    const band = new THREE.Mesh(bandGeo, phoneMat);
-    band.rotation.x = Math.PI / 2;
-    band.position.set(0, 0.175, 0);
-    headGroup.add(band);
-
-    // Mecha Cat Ears on headset
-    const earGeo = new THREE.ConeGeometry(0.035, 0.08, 4);
-    earGeo.rotateZ(Math.PI / 7);
-    const earL = new THREE.Mesh(earGeo, phoneMat);
-    earL.position.set(-0.09, 0.23, 0);
-    headGroup.add(earL);
-
-    const earTipL = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.03, 4), trimMat);
-    earTipL.position.set(-0.105, 0.265, 0);
-    headGroup.add(earTipL);
-
-    const earR = new THREE.Mesh(earGeo, phoneMat);
-    earR.rotation.y = Math.PI;
-    earR.position.set(0.09, 0.23, 0);
-    headGroup.add(earR);
-
-    const earTipR = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.03, 4), trimMat);
-    earTipR.position.set(0.105, 0.265, 0);
-    headGroup.add(earTipR);
-
-    // 4. Arms & Slender Hands with Gauntlets
-    // Left Arm
-    const armLGroup = new THREE.Group();
-    leftArmRef.current = armLGroup;
-    armLGroup.position.set(-0.155, 0.28, 0);
-    torsoGroup.add(armLGroup);
-
-    const upperArmGeo = new THREE.CylinderGeometry(0.038, 0.034, 0.22, 12);
-    const upperArmL = new THREE.Mesh(upperArmGeo, jacketMat);
-    upperArmL.position.set(-0.04, -0.09, -0.04);
-    upperArmL.rotation.set(0.4, 0, 0.2);
-    armLGroup.add(upperArmL);
-
-    const forearmGeo = new THREE.CylinderGeometry(0.032, 0.026, 0.24, 12);
-    const forearmL = new THREE.Mesh(forearmGeo, jacketMat);
-    forearmL.position.set(-0.04, -0.15, -0.22);
-    forearmL.rotation.set(-1.1, 0.3, 0.1);
-    armLGroup.add(forearmL);
-
-    // Cyber glove & slender anime hand
-    const handL = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.018, 0.045), skinMat);
-    handL.position.set(-0.07, -0.11, -0.34);
-    armLGroup.add(handL);
-
-    const cuffL = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.02, 12), trimMat);
-    cuffL.position.set(-0.065, -0.105, -0.31);
-    armLGroup.add(cuffL);
-
-    // Right Arm
-    const armRGroup = new THREE.Group();
-    rightArmRef.current = armRGroup;
-    armRGroup.position.set(0.155, 0.28, 0);
-    torsoGroup.add(armRGroup);
-
-    const upperArmR = new THREE.Mesh(upperArmGeo, jacketMat);
-    upperArmR.position.set(0.04, -0.09, -0.04);
-    upperArmR.rotation.set(0.4, 0, -0.2);
-    armRGroup.add(upperArmR);
-
-    const forearmR = new THREE.Mesh(forearmGeo, jacketMat);
-    forearmR.position.set(0.04, -0.15, -0.22);
-    forearmR.rotation.set(-1.1, -0.3, -0.1);
-    armRGroup.add(forearmR);
-
-    const handR = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.018, 0.045), skinMat);
-    handR.position.set(0.07, -0.11, -0.34);
-    armRGroup.add(handR);
-
-    const cuffR = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.02, 12), trimMat);
-    cuffR.position.set(0.065, -0.105, -0.31);
-    armRGroup.add(cuffR);
-
-    // --- G. Cute Holographic Companion Drone (Kawaii Chibi Familiar) ---
+    // --- L. KAWAII COMPANION FLOATING BOT (RIGHT SIDE) ---
     const droneGroup = new THREE.Group();
     droneRef.current = droneGroup;
-    droneGroup.position.set(0.72, 1.45, 0.15);
+    droneGroup.position.set(1.38, 1.50, 0.22);
     rootGroup.add(droneGroup);
 
-    const droneGeo = new THREE.SphereGeometry(0.075, 20, 20);
-    const droneMat = new THREE.MeshStandardMaterial({
-      color: 0x121414,
-      roughness: 0.2,
-      metalness: 0.95
-    });
-    const droneCore = new THREE.Mesh(droneGeo, droneMat);
+    // Core Sphere
+    const droneCore = new THREE.Mesh(
+      new THREE.SphereGeometry(0.075, 20, 20),
+      new THREE.MeshStandardMaterial({ color: 0x141718, roughness: 0.25, metalness: 0.95 })
+    );
     droneGroup.add(droneCore);
 
     // Dynamic Kawaii Face Canvas
@@ -988,115 +1184,283 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const ectx = eyeCanvas.getContext('2d')!;
 
     const drawDroneFace = (expression: string) => {
-      ectx.fillStyle = '#121414';
+      ectx.fillStyle = '#101314';
       ectx.fillRect(0, 0, 128, 128);
       ectx.fillStyle = '#dfff00';
-      ectx.font = 'bold 32px monospace';
+      ectx.font = 'bold 30px monospace';
       ectx.textAlign = 'center';
       ectx.textBaseline = 'middle';
       ectx.fillText(expression, 64, 64);
     };
-
     drawDroneFace('( ^ _ ^ )');
 
     const eyeTex = new THREE.CanvasTexture(eyeCanvas);
     droneEyeTexRef.current = eyeTex;
-    const eyeMat = new THREE.MeshBasicMaterial({ map: eyeTex });
-    const eyeMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.05), eyeMat);
+    const eyeMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.08, 0.05),
+      new THREE.MeshBasicMaterial({ map: eyeTex })
+    );
     eyeMesh.position.set(0, 0.01, 0.076);
     droneGroup.add(eyeMesh);
 
-    // Orbital Gyroscope Rings
+    // Dual Spinning Orbital Gyroscope Rings
     const ringsGroup = new THREE.Group();
     droneRingsRef.current = ringsGroup;
     droneGroup.add(ringsGroup);
 
-    const ringGeo1 = new THREE.TorusGeometry(0.11, 0.005, 8, 32);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xdfff00 });
-    const ring1 = new THREE.Mesh(ringGeo1, ringMat);
+    const ring1 = new THREE.Mesh(
+      new THREE.TorusGeometry(0.11, 0.005, 8, 32),
+      new THREE.MeshBasicMaterial({ color: 0xdfff00 })
+    );
     ringsGroup.add(ring1);
 
-    const ringGeo2 = new THREE.TorusGeometry(0.13, 0.004, 8, 32);
-    const ring2 = new THREE.Mesh(ringGeo2, ringMat);
+    const ring2 = new THREE.Mesh(
+      new THREE.TorusGeometry(0.13, 0.004, 8, 32),
+      new THREE.MeshBasicMaterial({ color: 0x00e5ff })
+    );
     ring2.rotation.x = Math.PI / 3;
     ringsGroup.add(ring2);
 
+    // Soft downward beacon
+    const botLight = new THREE.PointLight(0xdfff00, 1.2, 1.8);
+    botLight.position.set(0, -0.05, 0);
+    droneGroup.add(botLight);
+
+    // --- M. DESK ACCESSORIES (KEYBOARD, MOUSE, COFFEE, PLANT, NOTES) ---
+    // Deskmat
+    const deskmatGeo = new THREE.PlaneGeometry(0.96, 0.38);
+    const matCanvas = document.createElement('canvas');
+    matCanvas.width = 512;
+    matCanvas.height = 256;
+    const mctx = matCanvas.getContext('2d')!;
+    mctx.fillStyle = '#161819';
+    mctx.fillRect(0, 0, 512, 256);
+    mctx.strokeStyle = 'rgba(223, 255, 0, 0.35)';
+    mctx.lineWidth = 2;
+    for (let r = 40; r < 360; r += 32) {
+      mctx.beginPath();
+      mctx.ellipse(256, 128, r, r * 0.45, 0, 0, Math.PI * 2);
+      mctx.stroke();
+    }
+    const matTexture = new THREE.CanvasTexture(matCanvas);
+    matTexture.colorSpace = THREE.SRGBColorSpace;
+    const deskmat = new THREE.Mesh(deskmatGeo, new THREE.MeshStandardMaterial({ map: matTexture, roughness: 0.85 }));
+    deskmat.rotation.x = -Math.PI / 2;
+    deskmat.position.set(0, 0.88, 0.05);
+    deskGroup.add(deskmat);
+
+    // Mechanical Keyboard
+    const kbBase = new THREE.Mesh(
+      new THREE.BoxGeometry(0.38, 0.016, 0.14),
+      new THREE.MeshStandardMaterial({ color: 0x181b1c, roughness: 0.4, metalness: 0.7 })
+    );
+    kbBase.position.set(-0.04, 0.89, 0.05);
+    deskGroup.add(kbBase);
+
+    // Key Matrix
+    const keyGeo = new THREE.BoxGeometry(0.018, 0.009, 0.018);
+    const keyMat = new THREE.MeshStandardMaterial({
+      color: 0x242828, emissive: 0xdfff00, emissiveIntensity: 0.35, roughness: 0.3
+    });
+    const keyMesh = new THREE.InstancedMesh(keyGeo, keyMat, 70);
+    const dummy = new THREE.Object3D();
+    let keyIdx = 0;
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 14; c++) {
+        dummy.position.set(-0.04 - 0.19 + c * 0.024, 0.903, 0.05 - 0.045 + r * 0.023);
+        dummy.updateMatrix();
+        keyMesh.setMatrixAt(keyIdx++, dummy.matrix);
+      }
+    }
+    keyMesh.instanceMatrix.needsUpdate = true;
+    deskGroup.add(keyMesh);
+
+    // Gaming Mouse
+    const mouseMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.06, 0.028, 0.11),
+      new THREE.MeshStandardMaterial({ color: 0x141617, roughness: 0.35, metalness: 0.6 })
+    );
+    mouseMesh.position.set(0.26, 0.895, 0.05);
+    deskGroup.add(mouseMesh);
+
+    // Steaming Coffee Mug
+    const mug = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.038, 0.032, 0.085, 16),
+      new THREE.MeshStandardMaterial({ color: 0x141616, roughness: 0.4, metalness: 0.7 })
+    );
+    mug.position.set(-0.35, 0.92, -0.08);
+    deskGroup.add(mug);
+
+    const mugBand = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.039, 0.039, 0.02, 16),
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.7 })
+    );
+    mugBand.position.set(-0.35, 0.94, -0.08);
+    deskGroup.add(mugBand);
+
+    // Steam particles
+    const steamGeo = new THREE.BufferGeometry();
+    const steamPos = new Float32Array(18 * 3);
+    for (let i = 0; i < 18; i++) {
+      steamPos[i * 3] = -0.35 + (Math.random() - 0.5) * 0.03;
+      steamPos[i * 3 + 1] = 0.98 + Math.random() * 0.15;
+      steamPos[i * 3 + 2] = -0.08 + (Math.random() - 0.5) * 0.03;
+    }
+    steamGeo.setAttribute('position', new THREE.BufferAttribute(steamPos, 3));
+    const steamPoints = new THREE.Points(
+      steamGeo,
+      new THREE.PointsMaterial({ color: 0xffffff, size: 0.016, transparent: true, opacity: 0.35 })
+    );
+    deskGroup.add(steamPoints);
+    steamParticlesRef.current = steamPoints;
+
+    // Ceramic Planter with Succulent
+    const pot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.038, 0.026, 0.055, 6),
+      new THREE.MeshStandardMaterial({ color: 0x333738, roughness: 0.9 })
+    );
+    pot.position.set(0.44, 0.91, -0.2);
+    deskGroup.add(pot);
+
+    const plantMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.65 });
+    for (let i = 0; i < 7; i++) {
+      const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.014, 0.045, 4), plantMat);
+      const angle = (i / 7) * Math.PI * 2;
+      leaf.position.set(0.44 + Math.cos(angle) * 0.018, 0.945, -0.2 + Math.sin(angle) * 0.018);
+      leaf.rotation.x = Math.sin(angle) * 0.4;
+      leaf.rotation.z = -Math.cos(angle) * 0.4;
+      deskGroup.add(leaf);
+    }
+
+    // --- N. ERGONOMIC MESH CHAIR ---
+    const chairGroup = new THREE.Group();
+    rootGroup.add(chairGroup);
+    chairGroup.position.set(0, 0, 0.52);
+
+    const spineMat = new THREE.MeshStandardMaterial({ color: 0x121415, roughness: 0.35, metalness: 0.85 });
+    const cMeshMat = new THREE.MeshStandardMaterial({ color: 0x1f2324, roughness: 0.7, metalness: 0.2 });
+
+    const starBase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.05, 16), spineMat);
+    starBase.position.set(0, 0.08, 0);
+    chairGroup.add(starBase);
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.025, 0.28), spineMat);
+      spoke.position.set(Math.sin(angle) * 0.14, 0.07, Math.cos(angle) * 0.14);
+      spoke.rotation.y = angle;
+      chairGroup.add(spoke);
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.02, 12), spineMat);
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(Math.sin(angle) * 0.27, 0.03, Math.cos(angle) * 0.27);
+      chairGroup.add(wheel);
+    }
+
+    const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.028, 0.45, 16), spineMat);
+    cylinder.position.set(0, 0.3, 0);
+    chairGroup.add(cylinder);
+
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.48), cMeshMat);
+    seat.position.set(0, 0.54, 0);
+    chairGroup.add(seat);
+
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.62, 0.05), cMeshMat);
+    back.position.set(0, 0.92, 0.24);
+    back.rotation.x = -0.1;
+    chairGroup.add(back);
+
+    const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.14, 0.06), cMeshMat);
+    headrest.position.set(0, 1.32, 0.32);
+    chairGroup.add(headrest);
+
+    // Armrests
+    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.22, 12), spineMat);
+    armL.position.set(-0.29, 0.66, 0.06);
+    chairGroup.add(armL);
+    const armPadL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.025, 0.22), cMeshMat);
+    armPadL.position.set(-0.29, 0.77, 0.06);
+    chairGroup.add(armPadL);
+
+    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.22, 12), spineMat);
+    armR.position.set(0.29, 0.66, 0.06);
+    chairGroup.add(armR);
+    const armPadR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.025, 0.22), cMeshMat);
+    armPadR.position.set(0.29, 0.77, 0.06);
+    chairGroup.add(armPadR);
+
     // Ambient floating particles
-    const particleCount = 70;
     const pGeo = new THREE.BufferGeometry();
-    const pPositions = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount; i++) {
-      pPositions[i * 3] = (Math.random() - 0.5) * 4.5;
-      pPositions[i * 3 + 1] = 0.5 + Math.random() * 2.5;
-      pPositions[i * 3 + 2] = (Math.random() - 0.5) * 3.5;
+    const pPositions = new Float32Array(80 * 3);
+    for (let i = 0; i < 80; i++) {
+      pPositions[i * 3] = (Math.random() - 0.5) * 6.0;
+      pPositions[i * 3 + 1] = 0.5 + Math.random() * 2.8;
+      pPositions[i * 3 + 2] = (Math.random() - 0.5) * 5.0;
     }
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
-    const pMat = new THREE.PointsMaterial({
-      color: 0xdfff00,
-      size: 0.025,
-      transparent: true,
-      opacity: 0.55
-    });
-    const particles = new THREE.Points(pGeo, pMat);
+    const particles = new THREE.Points(
+      pGeo,
+      new THREE.PointsMaterial({ color: 0xdfff00, size: 0.02, transparent: true, opacity: 0.5 })
+    );
     rootGroup.add(particles);
 
     // ==========================================
-    // 8. DYNAMIC MONITOR CONTENT GENERATION
+    // 8. DYNAMIC MONITOR SCREENS GENERATION
     // ==========================================
     const codeLines = [
-      '// KINETIC_KERNEL_v5.2.0 [READY]',
-      'const sys = initializeDistributedNodes();',
-      'const telemetry = await sys.connectMesh({',
-      '  protocol: "UDP_QUIC_MULTIPATH",',
-      '  latencyThreshold: 14.0 /* ms */,',
-      '  failoverPolicy: "CONSENSUS_RAFT"',
+      '// JEET_PATEL // SYSTEM_ARCHITECT_v7.0',
+      'import { QuantumMesh, TelemetryEngine } from "@system/core";',
+      'const cluster = await QuantumMesh.connect({',
+      '  protocol: "QUIC_MULTIPATH",',
+      '  clusterRegion: "AP_SOUTH_MUMBAI",',
+      '  failoverPolicy: "CONSENSUS_RAFT_STABLE"',
       '});',
-      '// OPTIMIZING NEURAL WEIGHTS...',
-      'model.train({ epoch: 4592, loss: 0.042 });',
-      'deployTelemetryPipeline("SDJIC_PLATFORM");',
-      'sys.auditTrace({ status: "OPTIMAL" });',
-      '// ENTERING PORTFOLIO DATASTREAM...',
-      'stream.bindPort(3000).mountHUD();'
+      '// NEURAL INFERENCE ENGINE // LATENCY: 12.4ms',
+      'const model = TelemetryEngine.loadWeights("TRANSFORMER_V4");',
+      'model.optimizeGraph({ precision: "FP16_TENSOR" });',
+      'await cluster.deployTelemetryPipeline("PROD_CLUSTER");',
+      'console.log(">> SYSTEM READY // EXPLORE ROOM FREELY");',
+      'stream.bindPort(3000).mountPortfolio();'
     ];
     let lineScroll = 0;
 
+    const vertLines = [
+      '[DOCKER] 32 containers healthy',
+      '[GIT] commit 7f8a91c verified',
+      '[CARGO] compiling core-mesh v2.4',
+      '[K8S] pods balanced: 12/12',
+      '[SECURITY] zero CVEs detected',
+      '[CUDA] memory allocated: 22.4 GB',
+      '[LATENCY] p99 = 14.2ms',
+      '[BUILD] SUCCESS in 1.48s'
+    ];
+
     const updateScreens = (time: number, isZooming: boolean) => {
-      // Center Screen
+      // 1. Center Screen
       cctx.fillStyle = '#0a0d0d';
       cctx.fillRect(0, 0, 1024, 640);
-
-      // Top bar
       cctx.fillStyle = '#161c1c';
       cctx.fillRect(0, 0, 1024, 52);
       cctx.fillStyle = '#dfff00';
       cctx.font = 'bold 20px monospace';
-      cctx.fillText('[ TERMINAL: SYSTEM_ARCHITECT // ROOT_NODE ]', 24, 34);
+      cctx.fillText('[ TERMINAL: SYSTEM_ARCHITECT // BATTLESTATION_ROOT ]', 24, 34);
       cctx.fillStyle = '#a0ffa0';
-      cctx.fillText('STATUS: ONLINE', 840, 34);
+      cctx.fillText('STATUS: ONLINE // GPU: RTX 4090', 700, 34);
 
-      // Code text
       cctx.font = '22px monospace';
       const visibleLines = 11;
       const startIdx = Math.floor(lineScroll) % codeLines.length;
       for (let i = 0; i < visibleLines; i++) {
         const text = codeLines[(startIdx + i) % codeLines.length];
-        if (text.startsWith('//')) {
-          cctx.fillStyle = '#dfff00';
-        } else if (text.includes('const') || text.includes('await')) {
-          cctx.fillStyle = '#a0ffa0';
-        } else {
-          cctx.fillStyle = '#e2e2e2';
-        }
+        if (text.startsWith('//')) cctx.fillStyle = '#dfff00';
+        else if (text.includes('const') || text.includes('await') || text.includes('import')) cctx.fillStyle = '#a0ffa0';
+        else cctx.fillStyle = '#e2e2e2';
         cctx.fillText(text, 32, 105 + i * 46);
       }
 
-      // Blinking cursor
       if (Math.sin(time * 5) > 0) {
         cctx.fillStyle = '#dfff00';
-        cctx.fillRect(720, 105 + 8 * 46 - 20, 14, 26);
+        cctx.fillRect(660, 105 + 8 * 46 - 20, 14, 26);
       }
 
-      // If zooming, draw digital flare overlay on screen
       if (isZooming) {
         cctx.fillStyle = `rgba(223, 255, 0, ${0.15 + Math.sin(time * 12) * 0.1})`;
         cctx.fillRect(0, 0, 1024, 640);
@@ -1104,46 +1468,308 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
         cctx.font = 'bold 28px monospace';
         cctx.fillText('>> SYNCHRONIZING WITH SYSTEM ARCHITECT PORTFOLIO...', 80, 580);
       }
-
       codeTexture.needsUpdate = true;
 
-      // Side Screen
-      lctx.fillStyle = '#0a0d0d';
-      lctx.fillRect(0, 0, 512, 420);
+      // 2. Left Vertical Screen - AI Computer Vision & Image Visualization
+      // User requested: "all screen on left side screen img visualization right screen with something"
+      vctx.fillStyle = '#070a0c';
+      vctx.fillRect(0, 0, 512, 800);
 
+      // Top Title Bar
+      vctx.fillStyle = '#161d22';
+      vctx.fillRect(0, 0, 512, 46);
+      vctx.fillStyle = '#dfff00';
+      vctx.font = 'bold 18px "JetBrains Mono", monospace';
+      vctx.fillText('[ AI_VISION // NEURAL_SEGMENTATION ]', 20, 30);
+      vctx.fillStyle = '#00e5ff';
+      vctx.font = 'bold 14px "JetBrains Mono", monospace';
+      vctx.fillText('120 FPS // 3.2ms', 360, 30);
+
+      // Main Image Visualization Viewport
+      const imgX = 24, imgY = 58, imgW = 464, imgH = 340;
+      vctx.fillStyle = '#0a1015';
+      vctx.fillRect(imgX, imgY, imgW, imgH);
+      vctx.strokeStyle = 'rgba(0, 229, 255, 0.25)';
+      vctx.lineWidth = 1.5;
+      vctx.strokeRect(imgX, imgY, imgW, imgH);
+
+      // Inner image background grid
+      vctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      for (let gx = imgX; gx <= imgX + imgW; gx += 32) {
+        vctx.beginPath(); vctx.moveTo(gx, imgY); vctx.lineTo(gx, imgY + imgH); vctx.stroke();
+      }
+      for (let gy = imgY; gy <= imgY + imgH; gy += 32) {
+        vctx.beginPath(); vctx.moveTo(imgX, gy); vctx.lineTo(imgX + imgW, gy); vctx.stroke();
+      }
+
+      // Visualized Neural Object / Cyber Core
+      const centerX = imgX + imgW / 2;
+      const centerY = imgY + imgH / 2;
+
+      // Segmentation mask gradient blob
+      const segGrad = vctx.createRadialGradient(centerX - 30, centerY - 20, 10, centerX, centerY, 120);
+      segGrad.addColorStop(0, 'rgba(6, 182, 212, 0.45)');
+      segGrad.addColorStop(0.5, 'rgba(168, 85, 247, 0.35)');
+      segGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      vctx.fillStyle = segGrad;
+      vctx.beginPath();
+      vctx.ellipse(centerX, centerY, 110, 85, 0.2, 0, Math.PI * 2);
+      vctx.fill();
+
+      // Cybernetic wireframe subject contour
+      vctx.strokeStyle = '#00e5ff';
+      vctx.lineWidth = 2;
+      vctx.beginPath();
+      vctx.moveTo(centerX - 70, centerY - 50);
+      vctx.lineTo(centerX + 70, centerY - 50);
+      vctx.lineTo(centerX + 90, centerY + 40);
+      vctx.lineTo(centerX, centerY + 80);
+      vctx.lineTo(centerX - 90, centerY + 40);
+      vctx.closePath();
+      vctx.stroke();
+
+      // Inner core rings
+      vctx.strokeStyle = '#dfff00';
+      vctx.lineWidth = 1.5;
+      vctx.beginPath();
+      vctx.arc(centerX, centerY, 38, 0, Math.PI * 2);
+      vctx.stroke();
+
+      // Bounding Box 1 (Main target object)
+      const b1x = centerX - 95, b1y = centerY - 75, b1w = 190, b1h = 165;
+      vctx.strokeStyle = '#dfff00';
+      vctx.lineWidth = 2;
+      // Corner brackets style
+      const cLen = 16;
+      vctx.beginPath();
+      vctx.moveTo(b1x, b1y + cLen); vctx.lineTo(b1x, b1y); vctx.lineTo(b1x + cLen, b1y);
+      vctx.moveTo(b1x + b1w - cLen, b1y); vctx.lineTo(b1x + b1w, b1y); vctx.lineTo(b1x + b1w, b1y + cLen);
+      vctx.moveTo(b1x, b1y + b1h - cLen); vctx.lineTo(b1x, b1y + b1h); vctx.lineTo(b1x + cLen, b1y + b1h);
+      vctx.moveTo(b1x + b1w - cLen, b1y + b1h); vctx.lineTo(b1x + b1w, b1y + b1h); vctx.lineTo(b1x + b1w, b1y + b1h - cLen);
+      vctx.stroke();
+
+      // Bounding box tag
+      vctx.fillStyle = '#dfff00';
+      vctx.fillRect(b1x, b1y - 20, 160, 20);
+      vctx.fillStyle = '#121414';
+      vctx.font = 'bold 12px "JetBrains Mono", monospace';
+      vctx.fillText('TARGET: 99.8% [CORE]', b1x + 6, b1y - 5);
+
+      // Bounding Box 2 (Secondary feature detection)
+      const b2x = imgX + 26, b2y = centerY + 10, b2w = 95, b2h = 75;
+      vctx.strokeStyle = '#00e5ff';
+      vctx.lineWidth = 1.5;
+      vctx.strokeRect(b2x, b2y, b2w, b2h);
+      vctx.fillStyle = '#00e5ff';
+      vctx.fillRect(b2x, b2y - 18, 95, 18);
+      vctx.fillStyle = '#080a0c';
+      vctx.font = 'bold 11px "JetBrains Mono", monospace';
+      vctx.fillText('ROI: 96.4%', b2x + 4, b2y - 4);
+
+      // Real-time Scanning Laser Line
+      const scanY = imgY + ((time * 110) % imgH);
+      const laserGrad = vctx.createLinearGradient(imgX, scanY - 12, imgX, scanY);
+      laserGrad.addColorStop(0, 'rgba(223, 255, 0, 0)');
+      laserGrad.addColorStop(1, 'rgba(223, 255, 0, 0.4)');
+      vctx.fillStyle = laserGrad;
+      vctx.fillRect(imgX, scanY - 12, imgW, 12);
+      vctx.strokeStyle = '#dfff00';
+      vctx.lineWidth = 2;
+      vctx.beginPath();
+      vctx.moveTo(imgX, scanY); vctx.lineTo(imgX + imgW, scanY);
+      vctx.stroke();
+
+      // Convolution Feature Map Grid (8x filters)
+      vctx.fillStyle = '#dfff00';
+      vctx.font = 'bold 14px "JetBrains Mono", monospace';
+      vctx.fillText('FEATURE_ACTIVATION_MAPS [8x CONV_FILTERS]', 24, 424);
+
+      const fSize = 48, fGap = 10;
+      for (let f = 0; f < 8; f++) {
+        const fx = 24 + (f % 4) * (fSize + fGap + 12);
+        const fy = 438 + Math.floor(f / 4) * (fSize + fGap);
+        vctx.fillStyle = '#11181c';
+        vctx.fillRect(fx, fy, fSize, fSize);
+        vctx.strokeStyle = 'rgba(0, 229, 255, 0.3)';
+        vctx.lineWidth = 1;
+        vctx.strokeRect(fx, fy, fSize, fSize);
+
+        // Simulated activation heat dots
+        const actVal = Math.sin(time * 3 + f * 1.5) * 0.5 + 0.5;
+        vctx.fillStyle = f % 2 === 0 ? `rgba(223, 255, 0, ${actVal})` : `rgba(0, 229, 255, ${actVal})`;
+        vctx.fillRect(fx + 6, fy + 6, fSize - 12, fSize - 12);
+      }
+
+      // Classification Probability Bars
+      vctx.fillStyle = '#ffffff';
+      vctx.font = '13px "JetBrains Mono", monospace';
+      vctx.fillText('NEURAL_INFERENCE_CONFIDENCE:', 24, 580);
+
+      const drawProbBar = (yPos: number, label: string, pct: number, col: string) => {
+        vctx.fillStyle = '#94a3b8';
+        vctx.font = '12px "JetBrains Mono", monospace';
+        vctx.fillText(label, 24, yPos);
+        vctx.fillStyle = '#161d22';
+        vctx.fillRect(24, yPos + 6, 464, 14);
+        vctx.fillStyle = col;
+        vctx.fillRect(24, yPos + 6, 464 * pct, 14);
+        vctx.fillStyle = '#ffffff';
+        vctx.fillText(`${(pct * 100).toFixed(1)}%`, 430, yPos);
+      };
+
+      drawProbBar(602, 'OBJ_CLASSIFICATION', 0.994, '#dfff00');
+      drawProbBar(638, 'FEATURE_EMBEDDING', 0.958, '#00e5ff');
+      drawProbBar(674, 'DEPTH_ESTIMATION', 0.924, '#10b981');
+
+      vctx.fillStyle = '#475569';
+      vctx.font = '12px "JetBrains Mono", monospace';
+      vctx.fillText('INPUT: 4K_RGB // TENSOR: CUDA_FP16 // LATENT: 512-DIM', 24, 735);
+      vctx.fillStyle = '#00ff88';
+      vctx.fillText('● REAL-TIME VISION INFERENCE STREAM ACTIVE', 24, 765);
+      vertTexture.needsUpdate = true;
+
+      // 3. Right Monitor - Systems Telemetry, Multi-Core Metrics & Radar Cockpit
+      // User requested: "right screen with something"
+      lctx.fillStyle = '#080a0c';
+      lctx.fillRect(0, 0, 640, 480);
+
+      // Top Title Bar
+      lctx.fillStyle = '#14181c';
+      lctx.fillRect(0, 0, 640, 44);
       lctx.fillStyle = '#dfff00';
-      lctx.font = 'bold 16px monospace';
-      lctx.fillText('[ DATA_STREAM_A // TELEMETRY ]', 20, 32);
+      lctx.font = 'bold 17px "JetBrains Mono", monospace';
+      lctx.fillText('[ CLUSTER_TELEMETRY // PERFORMANCE_COCKPIT ]', 20, 28);
+      lctx.fillStyle = '#a0ffa0';
+      lctx.font = 'bold 13px "JetBrains Mono", monospace';
+      lctx.fillText('NODES: 32 ONLINE', 480, 28);
 
-      // Waveform
+      // Left Half: Telemetry Waveforms Box
+      const wBoxX = 20, wBoxY = 56, wBoxW = 360, wBoxH = 195;
+      lctx.fillStyle = '#0d1115';
+      lctx.fillRect(wBoxX, wBoxY, wBoxW, wBoxH);
+      lctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      lctx.lineWidth = 1;
+      lctx.strokeRect(wBoxX, wBoxY, wBoxW, wBoxH);
+
+      // Grid lines inside waveform box
+      for (let y = wBoxY + 30; y < wBoxY + wBoxH; y += 35) {
+        lctx.beginPath(); lctx.moveTo(wBoxX, y); lctx.lineTo(wBoxX + wBoxW, y); lctx.stroke();
+      }
+
+      // Wave 1: Throughput (Yellow)
       lctx.beginPath();
       lctx.strokeStyle = '#dfff00';
       lctx.lineWidth = 2.5;
-      for (let x = 0; x < 512; x += 4) {
-        const y = 200 + Math.sin(x * 0.04 + time * 3) * 45 + Math.cos(x * 0.02 - time * 2) * 20;
-        if (x === 0) lctx.moveTo(x, y);
-        else lctx.lineTo(x, y);
+      for (let x = 0; x < wBoxW; x += 4) {
+        const y = wBoxY + 70 + Math.sin(x * 0.035 + time * 3.5) * 32 + Math.cos(x * 0.02 - time * 2) * 12;
+        if (x === 0) lctx.moveTo(wBoxX + x, y);
+        else lctx.lineTo(wBoxX + x, y);
       }
       lctx.stroke();
 
-      lctx.fillStyle = '#ffffff';
-      lctx.font = 'bold 18px monospace';
-      lctx.fillText('THROUGHPUT: 78.4%', 20, 380);
-      lctx.fillStyle = '#dfff00';
-      lctx.fillText('LATENCY: 14MS', 320, 380);
+      // Wave 2: GPU Load (Cyan)
+      lctx.beginPath();
+      lctx.strokeStyle = '#00e5ff';
+      lctx.lineWidth = 2;
+      for (let x = 0; x < wBoxW; x += 4) {
+        const y = wBoxY + 130 + Math.sin(x * 0.05 - time * 2.8) * 22;
+        if (x === 0) lctx.moveTo(wBoxX + x, y);
+        else lctx.lineTo(wBoxX + x, y);
+      }
+      lctx.stroke();
 
-      leftTexture.needsUpdate = true;
+      lctx.fillStyle = '#dfff00';
+      lctx.font = 'bold 12px "JetBrains Mono", monospace';
+      lctx.fillText('● THROUGHPUT: 450k req/s', wBoxX + 12, wBoxY + 22);
+      lctx.fillStyle = '#00e5ff';
+      lctx.fillText('● GPU TENSOR CORE: 94.2%', wBoxX + 180, wBoxY + 22);
+
+      // Right Half: Circular Mesh Radar Scope
+      const rCenterX = 515, rCenterY = 150, radarR = 68;
+      lctx.fillStyle = '#0d1317';
+      lctx.beginPath();
+      lctx.arc(rCenterX, rCenterY, radarR, 0, Math.PI * 2);
+      lctx.fill();
+      lctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
+      lctx.lineWidth = 1.5;
+      lctx.stroke();
+
+      // Concentric rings
+      lctx.strokeStyle = 'rgba(0, 229, 255, 0.2)';
+      lctx.beginPath(); lctx.arc(rCenterX, rCenterY, radarR * 0.65, 0, Math.PI * 2); lctx.stroke();
+      lctx.beginPath(); lctx.arc(rCenterX, rCenterY, radarR * 0.35, 0, Math.PI * 2); lctx.stroke();
+
+      // Rotating Radar Sweep Line
+      const sweepAngle = time * 2.8;
+      lctx.strokeStyle = '#00e5ff';
+      lctx.lineWidth = 2;
+      lctx.beginPath();
+      lctx.moveTo(rCenterX, rCenterY);
+      lctx.lineTo(rCenterX + Math.cos(sweepAngle) * radarR, rCenterY + Math.sin(sweepAngle) * radarR);
+      lctx.stroke();
+
+      // Blinking Node Pings
+      const pingNodes = [
+        { angle: 0.5, dist: 0.75, col: '#dfff00' },
+        { angle: 1.8, dist: 0.5, col: '#00e5ff' },
+        { angle: 3.2, dist: 0.85, col: '#00ff88' },
+        { angle: 4.5, dist: 0.4, col: '#dfff00' },
+        { angle: 5.4, dist: 0.65, col: '#00e5ff' }
+      ];
+      pingNodes.forEach(pn => {
+        const px = rCenterX + Math.cos(pn.angle) * (radarR * pn.dist);
+        const py = rCenterY + Math.sin(pn.angle) * (radarR * pn.dist);
+        lctx.fillStyle = pn.col;
+        lctx.beginPath();
+        lctx.arc(px, py, 3.5, 0, Math.PI * 2);
+        lctx.fill();
+      });
+
+      lctx.fillStyle = '#94a3b8';
+      lctx.font = '11px "JetBrains Mono", monospace';
+      lctx.textAlign = 'center';
+      lctx.fillText('MESH_RADAR_SCOPE', rCenterX, rCenterY + radarR + 18);
+      lctx.textAlign = 'left';
+
+      // Bottom Metrics & 8-Core CPU Bar Histogram
+      lctx.fillStyle = '#ffffff';
+      lctx.font = 'bold 13px "JetBrains Mono", monospace';
+      lctx.fillText('CPU CORE LOAD [8-CORES]:', 20, 280);
+
+      for (let c = 0; c < 8; c++) {
+        const barX = 20 + c * 46;
+        const barH = 30 + Math.sin(time * 4 + c * 1.8) * 22;
+        lctx.fillStyle = '#1a2228';
+        lctx.fillRect(barX, 350 - 55, 36, 55);
+        lctx.fillStyle = c % 2 === 0 ? '#dfff00' : '#00e5ff';
+        lctx.fillRect(barX, 350 - barH, 36, barH);
+        lctx.fillStyle = '#94a3b8';
+        lctx.font = '10px "JetBrains Mono", monospace';
+        lctx.fillText(`C${c}`, barX + 8, 368);
+      }
+
+      // Memory & Event Logs
+      lctx.fillStyle = '#ffffff';
+      lctx.font = '12px "JetBrains Mono", monospace';
+      lctx.fillText('RAM: 28.4 / 32 GB (88.7%)', 400, 280);
+      lctx.fillStyle = '#161d22';
+      lctx.fillRect(400, 290, 220, 10);
+      lctx.fillStyle = '#dfff00';
+      lctx.fillRect(400, 290, 220 * 0.887, 10);
+
+      lctx.fillStyle = '#94a3b8';
+      lctx.font = '11px "JetBrains Mono", monospace';
+      lctx.fillText('>_ [QUIC] ingress packet stream: 0 loss', 20, 405);
+      lctx.fillText('>_ [RAFT] term 4819 accepted by all quorums', 20, 428);
+      lctx.fillText('>_ [CUDA] tensor inference batch: 1.2ms latency', 20, 451);
+      sideTexture.needsUpdate = true;
     };
 
-    // Kawaii Drone expression rotation
-    const droneFaces = ['( ^ _ ^ )', '( •̀ ω •́ )✧', '( ˘ ³˘)♥', '( ◕ ‿ ◕ )', '( > ‿ < )'];
-    let lastDroneFaceTime = 0;
+    updateScreens(0, false);
 
-    // Blink timer
-    let nextBlinkTime = 2.5;
-    let blinkDuration = 0.18;
-    let isBlinking = false;
-    let blinkStart = 0;
+    // Kawaii Drone expressions
+    const droneFaces = ['( ^ _ ^ )', '( •̀ ω •́ )✧', '( ˘ ³˘)♥', '( ◕ ‿ ◕ )', '( > ‿ < )', '( ⌐■_■ )'];
+    let lastDroneFaceTime = 0;
 
     // ==========================================
     // 9. ANIMATION & RENDER LOOP
@@ -1175,111 +1801,72 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const tick = () => {
       if (isDisposed) return;
 
-      const delta = Math.min(clock.getDelta(), 0.08);
+      const delta = Math.min(clock.getDelta(), 0.1);
       const elapsedTime = clock.getElapsedTime();
-      const targetSp = scrollProgressRef.current;
 
-      // Silky smooth exponential damping for camera zoom
-      smoothedSp = THREE.MathUtils.damp(smoothedSp, targetSp, 12.0, delta);
+      // Spin PC fans
+      pcFansRef.current.forEach((fan, idx) => {
+        fan.rotation.z += delta * (14 + idx * 2);
+      });
 
-      // CAMERA POSITIONING LOGIC:
-      // When smoothedSp > 0: Drive camera zoom smoothly towards central monitor!
-      if (smoothedSp > 0.002) {
-        const eased = easeInOutCubic(Math.min(1, smoothedSp));
-        _currentTargetPos.lerpVectors(_camStartPos, _camScreenPos, eased);
-        _currentLookAt.lerpVectors(_camStartLook, _camScreenLook, eased);
-
-        camera.position.copy(_currentTargetPos);
-        controls.target.copy(_currentLookAt);
-      } else if (!isUserInteracting) {
-        // Standard view interpolation
-        camera.position.lerp(cameraTargetPos.current, 0.06);
-        controls.target.lerp(cameraLookAtPos.current, 0.06);
-      }
-      controls.update();
-
-      // Eye Blinking Animation
-      if (elapsedTime > nextBlinkTime && !isBlinking) {
-        isBlinking = true;
-        blinkStart = elapsedTime;
-      }
-      if (isBlinking) {
-        const blinkProgress = (elapsedTime - blinkStart) / blinkDuration;
-        if (blinkProgress >= 1) {
-          isBlinking = false;
-          nextBlinkTime = elapsedTime + 3.0 + Math.random() * 3.0;
-          drawAnimeFace(0);
-          if (faceTexRef.current) faceTexRef.current.needsUpdate = true;
-        } else {
-          // Half blink / full blink
-          const blinkScale = Math.sin(blinkProgress * Math.PI);
-          drawAnimeFace(blinkScale);
-          if (faceTexRef.current) faceTexRef.current.needsUpdate = true;
+      // Animate coffee steam particles
+      if (steamParticlesRef.current) {
+        const posAttr = steamParticlesRef.current.geometry.attributes.position as THREE.BufferAttribute;
+        for (let i = 0; i < 18; i++) {
+          let y = posAttr.getY(i) + delta * 0.06;
+          if (y > 1.15) y = 0.98;
+          posAttr.setY(i, y);
         }
+        posAttr.needsUpdate = true;
       }
 
-      // Anime Ahoge (antenna hair) gentle bouncy sway
-      if (ahogeRef.current) {
-        ahogeRef.current.rotation.z = Math.sin(elapsedTime * 3.5) * 0.15;
-        ahogeRef.current.rotation.x = Math.cos(elapsedTime * 2.8) * 0.1;
-      }
-
-      // Character Breathing & Typing Animation
-      if (torsoGroup) {
-        torsoGroup.position.y = 0.15 + Math.sin(elapsedTime * 2.0) * 0.005;
-      }
-
-      // Alternate typing motion on anime hands
-      if (isTyping && leftArmRef.current && rightArmRef.current) {
-        const leftType = Math.sin(elapsedTime * 15) * 0.014;
-        const rightType = Math.cos(elapsedTime * 17) * 0.014;
-        leftArmRef.current.position.y = 0.28 + leftType;
-        rightArmRef.current.position.y = 0.28 + rightType;
-      }
-
-      // Head follows mouse gently with anime tilt
-      if (headGroupRef.current) {
-        _headTarget.set(
-          pointerPos.current.x * 0.32,
-          -pointerPos.current.y * 0.18,
-          0
-        );
-        headGroupRef.current.rotation.y = THREE.MathUtils.damp(
-          headGroupRef.current.rotation.y,
-          _headTarget.x,
-          4,
-          delta
-        );
-        headGroupRef.current.rotation.x = THREE.MathUtils.damp(
-          headGroupRef.current.rotation.x,
-          _headTarget.y,
-          4,
-          delta
-        );
-      }
-
-      // Drone float & expression cycle
+      // Animate Floating Drone (Hovering & Gyroscope rotation on Right Side)
       if (droneRef.current) {
-        droneRef.current.position.y = 1.45 + Math.sin(elapsedTime * 2.2) * 0.06;
-        droneRef.current.position.x = 0.72 + Math.cos(elapsedTime * 1.5) * 0.04;
+        droneRef.current.position.y = 1.50 + Math.sin(elapsedTime * 2.2) * 0.05;
+        droneRef.current.position.x = 1.38 + Math.cos(elapsedTime * 1.5) * 0.03;
       }
       if (droneRingsRef.current) {
-        droneRingsRef.current.rotation.x += delta * 1.2;
+        droneRingsRef.current.rotation.x += delta * 1.3;
         droneRingsRef.current.rotation.y += delta * 1.8;
       }
 
-      if (elapsedTime - lastDroneFaceTime > 4.0) {
+      // Cycle drone facial expressions
+      if (elapsedTime - lastDroneFaceTime > 3.8) {
         lastDroneFaceTime = elapsedTime;
         const nextFace = droneFaces[Math.floor(Math.random() * droneFaces.length)];
         drawDroneFace(nextFace);
         if (droneEyeTexRef.current) droneEyeTexRef.current.needsUpdate = true;
       }
 
-      // Ambient particle float
-      particles.rotation.y = elapsedTime * 0.03;
+      // Smooth scroll dive into monitor screen (if triggered by button)
+      const currentScroll = scrollProgressRef.current;
+      smoothedSp = THREE.MathUtils.damp(smoothedSp, currentScroll, 9.0, delta);
 
-      // Update Screen Textures (throttled to ~15fps to free GPU texture bandwidth)
-      lineScroll += delta * 1.4;
+      if (smoothedSp > 0.01) {
+        const t = easeInOutCubic(Math.min(smoothedSp, 1.0));
+        _currentTargetPos.lerpVectors(_camStartPos, _camScreenPos, t);
+        _currentLookAt.lerpVectors(_camStartLook, _camScreenLook, t);
+
+        camera.position.copy(_currentTargetPos);
+        controls.target.copy(_currentLookAt);
+
+        if (smoothedSp >= 0.98 && onDiveComplete) {
+          onDiveComplete();
+        }
+      }
+
+      controls.update();
+
+      // STRICT CAMERA CLAMPING: Camera MUST stay inside room and never cross wall/window!
+      camera.position.x = THREE.MathUtils.clamp(camera.position.x, -3.8, 3.8);
+      camera.position.y = THREE.MathUtils.clamp(camera.position.y, 0.45, 3.6);
+      camera.position.z = THREE.MathUtils.clamp(camera.position.z, -2.8, 3.2);
+
+      // Gentle floating particles
+      particles.rotation.y = elapsedTime * 0.02;
+
+      // Update screen textures
+      lineScroll += delta * 1.5;
       if (elapsedTime - lastScreenUpdateTime > 0.065 || (smoothedSp > 0.3 && elapsedTime - lastScreenUpdateTime > 0.033)) {
         lastScreenUpdateTime = elapsedTime;
         updateScreens(elapsedTime, smoothedSp > 0.4);
@@ -1309,31 +1896,23 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
-    const onPointerMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const ny = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      pointerPos.current.x = nx;
-      pointerPos.current.y = ny;
-    };
-    container.addEventListener('mousemove', onPointerMove);
-
     return () => {
       isDisposed = true;
       if (isSoftwareGl) clearTimeout(frameId);
       else cancelAnimationFrame(frameId);
 
-      container.removeEventListener('mousemove', onPointerMove);
       resizeObserver.disconnect();
 
       // Dispose Three.js objects
       controls.dispose();
       renderer.dispose();
       floorTexture.dispose();
-      shadowTex.dispose();
+      rugTexture.dispose();
       codeTexture.dispose();
-      leftTexture.dispose();
-      faceTex.dispose();
+      vertTexture.dispose();
+      sideTexture.dispose();
+      signTexture.dispose();
+      matTexture.dispose();
       eyeTex.dispose();
       deskTopGeo.dispose();
       pGeo.dispose();
@@ -1346,7 +1925,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
 
   return (
     <div className={`relative w-full h-full overflow-hidden select-none ${className}`}>
-      {/* 3D WebGL Canvas Mount Container */}
+      {/* 3D WebGL Canvas Mount Container - Clean and 100% unobstructed view! */}
       <div ref={mountRef} className="w-full h-full relative cursor-grab active:cursor-grabbing" />
     </div>
   );
