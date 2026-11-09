@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { MatrixBackground } from './MatrixBackground';
 
 interface FieldItem {
   id: string;
@@ -77,9 +78,8 @@ export const ExpertiseFieldsSection: React.FC = () => {
 
   return (
     <section id="section-domains" className="py-24 sm:py-32 px-4 sm:px-8 md:px-16 relative overflow-hidden bg-[#0a0c0c] border-t border-b border-white/5">
-      {/* Background kinetic ambient accents */}
-      <div className="absolute top-1/3 left-0 w-96 h-96 bg-[#dfff00]/5 blur-3xl pointer-events-none -translate-y-1/2"></div>
-      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-[#00f0ff]/5 blur-3xl pointer-events-none"></div>
+      {/* Matrix Background with Decreased Delicate Glow */}
+      <MatrixBackground glowOpacity="subtle" />
 
       <div className="max-w-[1200px] mx-auto relative z-10 [perspective:1400px]">
         {/* Section Header */}

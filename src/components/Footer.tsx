@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../data/store';
 import { Github, Linkedin, Twitter, Briefcase, Code, Shield, FileText } from 'lucide-react';
+import { MatrixBackground } from './MatrixBackground';
 
 export const Footer: React.FC = () => {
   const { config } = useApp();
@@ -12,8 +13,11 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-[#0d0f0f] border-t border-[#dfff00]/20 relative z-10 pt-16 pb-12">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 md:px-16">
+    <footer className="bg-[#0d0f0f] border-t border-[#dfff00]/20 relative z-10 pt-16 pb-12 overflow-hidden">
+      {/* Matrix Background with Decreased Subtle Glow */}
+      <MatrixBackground glowOpacity="subtle" />
+
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 md:px-16 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 border-b border-white/10 pb-12">
           {/* Brand Info */}
           <div className="md:col-span-2">

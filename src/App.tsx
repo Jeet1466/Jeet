@@ -12,21 +12,22 @@ import { ProjectsSection } from './components/ProjectsSection';
 import { ExpertiseFieldsSection } from './components/ExpertiseFieldsSection';
 import { NewsletterSection } from './components/NewsletterSection';
 import { Footer } from './components/Footer';
-import { ProjectModal } from './components/ProjectModal';
 import { ContactModal } from './components/ContactModal';
 import { KineticDesktop3D } from './components/KineticDesktop3D';
+import { FloatingBot } from './components/FloatingBot';
 import { X } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const {
-    selectedProject,
-    setSelectedProject,
     is3DFullscreen,
     setIs3DFullscreen
   } = useApp();
 
   return (
     <div className="min-h-screen bg-[#121414] text-[#e2e2e2] flex flex-col relative selection:bg-[#dfff00] selection:text-[#121414]">
+      {/* Interactive Global Floating Bot Companion (follows user across entire web) */}
+      <FloatingBot />
+
       {/* Top Fixed Navigation Bar */}
       <Navbar />
 
@@ -41,7 +42,7 @@ const MainContent: React.FC = () => {
         {/* Section 01: What I Engineer & Deploy (Fields) */}
         <ExpertiseFieldsSection />
 
-        {/* Section 02: Projects Architecture */}
+        {/* Section 02: Projects Architecture (Horizontal Scroll Showcase) */}
         <ProjectsSection />
 
         {/* Section 03: Kinetic Dispatch (Newsletter Subscription) */}
@@ -51,11 +52,7 @@ const MainContent: React.FC = () => {
         <Footer />
       </main>
 
-      {/* Interactive Global Modals */}
-      <ProjectModal
-        project={selectedProject}
-        onClose={() => setSelectedProject(null)}
-      />
+      {/* Global Contact Modal */}
       <ContactModal />
 
       {/* Fullscreen 3D Stage Modal */}

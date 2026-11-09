@@ -46,12 +46,6 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
   const pcFansRef = useRef<THREE.Mesh[]>([]);
   const steamParticlesRef = useRef<THREE.Points | null>(null);
 
-  // Floating bot references
-  const droneRef = useRef<THREE.Group | null>(null);
-  const droneRingsRef = useRef<THREE.Group | null>(null);
-  const droneEyeCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const droneEyeTexRef = useRef<THREE.CanvasTexture | null>(null);
-
   const scrollProgressRef = useRef(scrollProgress);
   scrollProgressRef.current = scrollProgress;
 
@@ -1163,68 +1157,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     pcGroup.add(frontFan2);
     pcFansRef.current.push(frontFan2);
 
-    // --- L. KAWAII COMPANION FLOATING BOT (RIGHT SIDE) ---
-    const droneGroup = new THREE.Group();
-    droneRef.current = droneGroup;
-    droneGroup.position.set(1.38, 1.50, 0.22);
-    rootGroup.add(droneGroup);
-
-    // Core Sphere
-    const droneCore = new THREE.Mesh(
-      new THREE.SphereGeometry(0.075, 20, 20),
-      new THREE.MeshStandardMaterial({ color: 0x141718, roughness: 0.25, metalness: 0.95 })
-    );
-    droneGroup.add(droneCore);
-
-    // Dynamic Kawaii Face Canvas
-    const eyeCanvas = document.createElement('canvas');
-    eyeCanvas.width = 128;
-    eyeCanvas.height = 128;
-    droneEyeCanvasRef.current = eyeCanvas;
-    const ectx = eyeCanvas.getContext('2d')!;
-
-    const drawDroneFace = (expression: string) => {
-      ectx.fillStyle = '#101314';
-      ectx.fillRect(0, 0, 128, 128);
-      ectx.fillStyle = '#dfff00';
-      ectx.font = 'bold 30px monospace';
-      ectx.textAlign = 'center';
-      ectx.textBaseline = 'middle';
-      ectx.fillText(expression, 64, 64);
-    };
-    drawDroneFace('( ^ _ ^ )');
-
-    const eyeTex = new THREE.CanvasTexture(eyeCanvas);
-    droneEyeTexRef.current = eyeTex;
-    const eyeMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.08, 0.05),
-      new THREE.MeshBasicMaterial({ map: eyeTex })
-    );
-    eyeMesh.position.set(0, 0.01, 0.076);
-    droneGroup.add(eyeMesh);
-
-    // Dual Spinning Orbital Gyroscope Rings
-    const ringsGroup = new THREE.Group();
-    droneRingsRef.current = ringsGroup;
-    droneGroup.add(ringsGroup);
-
-    const ring1 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.11, 0.005, 8, 32),
-      new THREE.MeshBasicMaterial({ color: 0xdfff00 })
-    );
-    ringsGroup.add(ring1);
-
-    const ring2 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.13, 0.004, 8, 32),
-      new THREE.MeshBasicMaterial({ color: 0x00e5ff })
-    );
-    ring2.rotation.x = Math.PI / 3;
-    ringsGroup.add(ring2);
-
-    // Soft downward beacon
-    const botLight = new THREE.PointLight(0xdfff00, 1.2, 1.8);
-    botLight.position.set(0, -0.05, 0);
-    droneGroup.add(botLight);
+    // (Note: The single global 3D floating bot companion is rendered via FloatingBot.tsx across the whole web)
 
     // --- M. DESK ACCESSORIES (KEYBOARD, MOUSE, COFFEE, PLANT, NOTES) ---
     // Deskmat
@@ -1772,28 +1705,23 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     let lastDroneFaceTime = 0;
 
     // ==========================================
-    // 9. ANIMATION & RENDER LOOP
+    // 9. ANIMATION & RENDER LOOP (OPTIMIZED 60FPS)
     // ==========================================
     const clock = new THREE.Clock();
     let frameId = 0;
     let isDisposed = false;
+    let isSceneVisible = true;
 
-    function afterDraw(cb: () => void) {
-      const gl = renderer.getContext() as WebGL2RenderingContext;
-      const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-      gl.flush();
-      const poll = () => {
-        if (isDisposed) return;
-        const state = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
-        if (state === gl.UNSIGNALED) {
-          frameId = window.setTimeout(poll, 6);
-        } else {
-          gl.deleteSync(sync);
-          frameId = window.setTimeout(cb, 60);
-        }
-      };
-      frameId = window.setTimeout(poll, 6);
-    }
+    // IntersectionObserver to pause rendering when scrolled away from Hero
+    const visibilityObserver = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          isSceneVisible = entry.isIntersecting;
+        });
+      },
+      { threshold: 0.01 }
+    );
+    visibilityObserver.observe(container);
 
     let smoothedSp = 0;
     let lastScreenUpdateTime = 0;
@@ -1801,10 +1729,16 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const tick = () => {
       if (isDisposed) return;
 
-      const delta = Math.min(clock.getDelta(), 0.1);
+      // When the 3D room is completely scrolled off-screen, sleep to save 100% GPU/CPU for page scrolling!
+      if (!isSceneVisible && !isFullscreen) {
+        frameId = requestAnimationFrame(tick);
+        return;
+      }
+
+      const delta = Math.min(clock.getDelta(), 0.05);
       const elapsedTime = clock.getElapsedTime();
 
-      // Spin PC fans
+      // Spin PC fans smoothly
       pcFansRef.current.forEach((fan, idx) => {
         fan.rotation.z += delta * (14 + idx * 2);
       });
@@ -1820,29 +1754,11 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
         posAttr.needsUpdate = true;
       }
 
-      // Animate Floating Drone (Hovering & Gyroscope rotation on Right Side)
-      if (droneRef.current) {
-        droneRef.current.position.y = 1.50 + Math.sin(elapsedTime * 2.2) * 0.05;
-        droneRef.current.position.x = 1.38 + Math.cos(elapsedTime * 1.5) * 0.03;
-      }
-      if (droneRingsRef.current) {
-        droneRingsRef.current.rotation.x += delta * 1.3;
-        droneRingsRef.current.rotation.y += delta * 1.8;
-      }
-
-      // Cycle drone facial expressions
-      if (elapsedTime - lastDroneFaceTime > 3.8) {
-        lastDroneFaceTime = elapsedTime;
-        const nextFace = droneFaces[Math.floor(Math.random() * droneFaces.length)];
-        drawDroneFace(nextFace);
-        if (droneEyeTexRef.current) droneEyeTexRef.current.needsUpdate = true;
-      }
-
-      // Smooth scroll dive into monitor screen (if triggered by button)
+      // Smooth scroll dive into monitor screen
       const currentScroll = scrollProgressRef.current;
-      smoothedSp = THREE.MathUtils.damp(smoothedSp, currentScroll, 9.0, delta);
+      smoothedSp = THREE.MathUtils.damp(smoothedSp, currentScroll, 12.0, delta);
 
-      if (smoothedSp > 0.01) {
+      if (smoothedSp > 0.005) {
         const t = easeInOutCubic(Math.min(smoothedSp, 1.0));
         _currentTargetPos.lerpVectors(_camStartPos, _camScreenPos, t);
         _currentLookAt.lerpVectors(_camStartLook, _camScreenLook, t);
@@ -1865,20 +1781,15 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       // Gentle floating particles
       particles.rotation.y = elapsedTime * 0.02;
 
-      // Update screen textures
+      // Update screen textures at controlled 10 FPS rate to eliminate WebGL texture upload stutters
       lineScroll += delta * 1.5;
-      if (elapsedTime - lastScreenUpdateTime > 0.065 || (smoothedSp > 0.3 && elapsedTime - lastScreenUpdateTime > 0.033)) {
+      if (elapsedTime - lastScreenUpdateTime > 0.1) {
         lastScreenUpdateTime = elapsedTime;
         updateScreens(elapsedTime, smoothedSp > 0.4);
       }
 
       renderer.render(scene, camera);
-
-      if (isSoftwareGl) {
-        afterDraw(tick);
-      } else {
-        frameId = requestAnimationFrame(tick);
-      }
+      frameId = requestAnimationFrame(tick);
     };
 
     tick();
@@ -1902,6 +1813,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       else cancelAnimationFrame(frameId);
 
       resizeObserver.disconnect();
+      visibilityObserver.disconnect();
 
       // Dispose Three.js objects
       controls.dispose();
@@ -1913,7 +1825,6 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       sideTexture.dispose();
       signTexture.dispose();
       matTexture.dispose();
-      eyeTex.dispose();
       deskTopGeo.dispose();
       pGeo.dispose();
 

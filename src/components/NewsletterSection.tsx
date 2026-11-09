@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../data/store';
 import { TopicInterest } from '../types';
 import { Mail, Check, AlertCircle, Send, Radio } from 'lucide-react';
+import { MatrixBackground } from './MatrixBackground';
 
 export const NewsletterSection: React.FC = () => {
   const { subscribe, subscribers } = useApp();
@@ -33,8 +34,11 @@ export const NewsletterSection: React.FC = () => {
   };
 
   return (
-    <section id="section-newsletter" className="py-24 px-4 sm:px-8 md:px-16 border-t border-[#dfff00]/20 bg-[#141616] relative">
-      <div className="max-w-[1200px] mx-auto">
+    <section id="section-newsletter" className="py-24 px-4 sm:px-8 md:px-16 border-t border-[#dfff00]/20 bg-[#141616] relative overflow-hidden">
+      {/* Matrix Background with Decreased Subtle Glow */}
+      <MatrixBackground glowOpacity="subtle" />
+
+      <div className="max-w-[1200px] mx-auto relative z-10">
         <div className="glass-panel p-8 sm:p-12 md:p-16 rounded-md border border-white/10 bg-[#121414]/90 relative overflow-hidden shadow-2xl">
           {/* Ambient Corner Accents */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#dfff00]/5 blur-3xl rounded-full pointer-events-none"></div>

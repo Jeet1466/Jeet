@@ -44,30 +44,41 @@ export const KineticScrollHero: React.FC = () => {
     return () => clearTimeout(timer);
   }, [currentText, isDeleting, roleIndex, roles]);
 
-  // SPEED-LIMITED ANIMATION LOOP:
-  // Guarantees that even if the user scrolls very fast or flicks their wheel,
-  // the visual transition moves at a capped maximum rate (1.2 / sec, ~0.85s total)
-  // RESPONSIVE ANIMATION LOOP:
+  // HIGH-PERFORMANCE RESPONSIVE ANIMATION LOOP:
   // Smoothly drives visual camera zoom in direct synchronization with user scroll
   useEffect(() => {
     let animId: number;
     let lastTime = performance.now();
+    let lastRenderedProgress = 0;
 
     const loop = (now: number) => {
-      const dt = Math.min((now - lastTime) / 1000, 0.08);
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
 
       const current = visualProgressRef.current;
       const target = targetProgressRef.current;
+      const diff = target - current;
 
-      if (Math.abs(current - target) > 0.001) {
-        // Fast, buttery smooth damping (12.0) with a generous max speed limit (3.5/s)
-        const next = smoothDampWithSpeedLimit(current, target, 12.0, 3.5, dt);
+      if (Math.abs(diff) > 0.002) {
+        // Fast, buttery smooth damping (factor 18) for ultra-responsive tracking with zero lag
+        const next = current + diff * (1 - Math.exp(-18 * dt));
         visualProgressRef.current = next;
-        setVisualProgress(next);
+
+        // Only trigger React state update if change is visually noticeable or crosses threshold
+        const crossedThreshold =
+          (current < 0.15 && next >= 0.15) ||
+          (current >= 0.15 && next < 0.15) ||
+          (current < 0.82 && next >= 0.82) ||
+          (current >= 0.82 && next < 0.82);
+
+        if (crossedThreshold || Math.abs(next - lastRenderedProgress) > 0.012) {
+          lastRenderedProgress = next;
+          setVisualProgress(next);
+        }
         isTransitioningRef.current = true;
       } else if (current !== target) {
         visualProgressRef.current = target;
+        lastRenderedProgress = target;
         setVisualProgress(target);
         isTransitioningRef.current = false;
       } else {
