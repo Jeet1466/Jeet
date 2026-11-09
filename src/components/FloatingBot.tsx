@@ -291,7 +291,7 @@ export const FloatingBot: React.FC<FloatingBotProps> = ({ onNavigateToProjects }
   return (
     <div
       ref={containerRef}
-      className="fixed top-16 sm:top-18 right-4 sm:right-8 z-40 select-none will-change-transform"
+      className="fixed top-22 sm:top-24 right-4 sm:right-8 z-40 select-none will-change-transform"
     >
       <div className="relative">
         {/* Subtle Cyber Glow under 3D Drone */}
