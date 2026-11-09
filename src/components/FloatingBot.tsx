@@ -77,15 +77,12 @@ export const FloatingBot: React.FC<FloatingBotProps> = ({ onNavigateToProjects }
     ctx.lineWidth = 4;
     ctx.strokeRect(6, 6, 244, 148);
 
-    // Glowing Expression Text shifted toward mouse gaze direction
+    // Expression Text shifted toward mouse gaze direction (clean, crisp, no glow blur)
     ctx.fillStyle = '#dfff00';
     ctx.font = 'bold 44px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#dfff00';
-    ctx.shadowBlur = 8;
     ctx.fillText(faceText, 128 + offsetX, 80 + offsetY);
-    ctx.shadowBlur = 0;
 
     if (eyeTexRef.current) {
       eyeTexRef.current.needsUpdate = true;
@@ -112,33 +109,60 @@ export const FloatingBot: React.FC<FloatingBotProps> = ({ onNavigateToProjects }
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     mount.appendChild(renderer.domElement);
 
-    // 3. Lighting Rig
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    // 3. Balanced Stylized Lighting (Soft, warm, no harsh specular glare)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.5);
+    const dirLight1 = new THREE.DirectionalLight(0xfff5ea, 1.4);
     dirLight1.position.set(2, 3, 2);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xdfff00, 1.8);
+    const dirLight2 = new THREE.DirectionalLight(0x7dd3fc, 0.6);
     dirLight2.position.set(-2, -1, 1.5);
     scene.add(dirLight2);
 
-    // 4. THE 3D DRONE MODEL
+    // 4. THE 3D ANIMATED MASCOT DRONE MODEL
     const droneGroup = new THREE.Group();
     droneGroupRef.current = droneGroup;
     scene.add(droneGroup);
 
-    // A. Dark Metallic Sphere Core
+    // A. Stylized Animated Porcelain Shell Core (Warm Graphite/Matte)
     const droneCore = new THREE.Mesh(
       new THREE.SphereGeometry(0.40, 32, 32),
       new THREE.MeshStandardMaterial({
-        color: 0x141718,
-        roughness: 0.22,
-        metalness: 0.95
+        color: 0x181c20,
+        roughness: 0.42,
+        metalness: 0.35
       })
     );
     droneGroup.add(droneCore);
+
+    // Cute Little Animated Mascot Antenna on top
+    const antennaStem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.012, 0.012, 0.16, 12),
+      new THREE.MeshStandardMaterial({ color: 0x24282c, roughness: 0.3, metalness: 0.8 })
+    );
+    antennaStem.position.set(0, 0.44, 0);
+    droneGroup.add(antennaStem);
+
+    const antennaBead = new THREE.Mesh(
+      new THREE.SphereGeometry(0.038, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2, metalness: 0.4 })
+    );
+    antennaBead.position.set(0, 0.52, 0);
+    droneGroup.add(antennaBead);
+
+    // Cute Ear Thruster Pods (Left & Right)
+    const thrusterMat = new THREE.MeshStandardMaterial({ color: 0x202428, roughness: 0.4, metalness: 0.5 });
+    const earL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.08, 16), thrusterMat);
+    earL.rotation.z = Math.PI / 2;
+    earL.position.set(-0.41, 0.02, 0);
+    droneGroup.add(earL);
+
+    const earR = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.08, 16), thrusterMat);
+    earR.rotation.z = Math.PI / 2;
+    earR.position.set(0.41, 0.02, 0);
+    droneGroup.add(earR);
 
     // B. Kawaii Dynamic Face Screen Visor
     const eyeCanvas = document.createElement('canvas');
@@ -165,21 +189,21 @@ export const FloatingBot: React.FC<FloatingBotProps> = ({ onNavigateToProjects }
 
     // Ring 1 (Yellow #dfff00)
     const ring1 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.58, 0.024, 16, 48),
+      new THREE.TorusGeometry(0.58, 0.020, 16, 48),
       new THREE.MeshBasicMaterial({ color: 0xdfff00 })
     );
     ringsGroup.add(ring1);
 
     // Ring 2 (Cyan #00e5ff) angled at Math.PI / 3
     const ring2 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.68, 0.020, 16, 48),
+      new THREE.TorusGeometry(0.68, 0.016, 16, 48),
       new THREE.MeshBasicMaterial({ color: 0x00e5ff })
     );
     ring2.rotation.x = Math.PI / 3;
     ringsGroup.add(ring2);
 
-    // D. Soft Downward Point Light Glow
-    const botLight = new THREE.PointLight(0xdfff00, 1.5, 2.5);
+    // D. Soft Downward Ambient Fill (No radioactive glare)
+    const botLight = new THREE.PointLight(0xffffff, 0.35, 1.8);
     botLight.position.set(0, -0.25, 0);
     droneGroup.add(botLight);
 
@@ -294,15 +318,12 @@ export const FloatingBot: React.FC<FloatingBotProps> = ({ onNavigateToProjects }
       className="fixed top-22 sm:top-24 right-4 sm:right-8 z-40 select-none will-change-transform"
     >
       <div className="relative">
-        {/* Subtle Cyber Glow under 3D Drone */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-[#dfff00]/12 blur-xl rounded-full pointer-events-none" />
-
         {/* Speech Dialogue Bubble - ONLY SHOWN WHEN USER CLICKS THE BOT */}
         {isTalking && speechText && (
-          <div className="absolute top-full right-0 mt-3 w-64 p-3 rounded-md bg-[#121414]/95 backdrop-blur-md border border-[#dfff00]/60 text-white shadow-[0_0_20px_rgba(223,255,0,0.25)] pointer-events-auto transition-all animate-in fade-in zoom-in-95 duration-200 z-50">
+          <div className="absolute top-full right-0 mt-3 w-64 p-3 rounded-md bg-[#121414]/95 backdrop-blur-md border border-[#dfff00]/60 text-white shadow-xl pointer-events-auto transition-all animate-in fade-in zoom-in-95 duration-200 z-50">
             <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-white/10">
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#dfff00] shadow-[0_0_6px_#dfff00]"></span>
+                <span className="w-2 h-2 rounded-full bg-[#dfff00]"></span>
                 <span className="font-technical text-[10px] text-[#dfff00] font-bold uppercase tracking-wider">
                   3D_BOT // ORBITAL_COMPANION
                 </span>

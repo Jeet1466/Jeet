@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeet1466 - Dynamic GitHub Projects Showcase</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#0B0F17',
+                            800: '#111827',
+                            700: '#1F2937',
+                            600: '#374151',
+                        },
+                        accent: {
+                            cyan: '#06B6D4',
+                            blue: '#3B82F6',
+                            purple: '#8B5CF6',
+                            emerald: '#10B981',
+                        }
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 3s infinite alternate',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 15px rgba(6, 182, 212, 0.2)' },
+                            '100%': { boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-6px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #07090e;
+            color: #E5E7EB;
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Glassmorphism styles */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 12px 30px -10px rgba(6, 182, 212, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        .language-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-cyan-500 selection:text-black">
+
+    <!-- Top Glow Effect -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-32 bg-gradient-to-b from-cyan-500/10 to-transparent blur-3xl pointer-events-none z-0"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+
+        <!-- Header Section -->
+        <header class="mb-10 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-6 border-b border-gray-800/80 pb-8">
+            <div>
+                <div class="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/50">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping mr-2"></span>
+                        LIVE REPOSITORY FEED
+                    </span>
+                    <span id="data-source-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-950 text-purple-300 border border-purple-800/50">
+                        Fetching...
+                    </span>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center justify-center sm:justify-start gap-3">
+                    <i class="fa-brands fa-github text-cyan-400"></i>
+                    Jeet1466 <span class="text-gray-400 font-light">/ Projects</span>
+                </h1>
+                <p class="mt-2 text-gray-400 text-sm sm:text-base max-w-2xl">
+                    Dynamic developer portfolio showcase directly connected with GitHub REST API. Explores active repositories, tools, and technical architectures.
+                </p>
+            </div>
+
+            <!-- Profile Overview Quick Card -->
+            <div id="profile-card" class="glass-panel p-4 rounded-2xl flex items-center gap-4 w-full sm:w-auto min-w-[280px]">
+                <img id="avatar-img" src="https://placehold.co/100x100/111827/06B6D4?text=J" alt="Jeet1466" class="w-14 h-14 rounded-xl border-2 border-cyan-500/30 object-cover">
+                <div>
+                    <h2 id="profile-name" class="font-bold text-white text-base">Jeet1466</h2>
+                    <a id="profile-link" href="https://github.com/Jeet1466" target="_blank" rel="noopener noreferrer" class="text-xs text-cyan-400 hover:underline flex items-center gap-1 font-mono">
+                        @Jeet1466 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                    <div class="flex items-center gap-3 text-xs text-gray-400 mt-2 font-mono">
+                        <span title="Public Repositories"><i class="fa-solid fa-code-fork text-gray-500 mr-1"></i><span id="stat-repos">0</span> repos</span>
+                        <span title="Total Stars"><i class="fa-regular fa-star text-amber-400 mr-1"></i><span id="stat-stars">0</span> stars</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Controls Toolbar (Search, Filter, View Mode, Refresh) -->
+        <section class="glass-panel p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center justify-between shadow-xl">
+            <!-- Search Input -->
+            <div class="relative w-full md:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+                <input type="text" id="search-input" placeholder="Search projects by name or topic..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-dark-900/80 border border-gray-700/60 rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-sans">
+            </div>
+
+            <!-- Filters & Views -->
+            <div class="flex flex-wrap items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+                <!-- Language Filter Dropdown -->
+                <div class="relative min-w-[130px]">
+                    <select id="language-select" class="w-full appearance-none bg-dark-900/80 border border-gray-700/60 text-gray-300 text-xs font-medium py-2.5 pl-3 pr-8 rounded-xl focus:outline-none focus:border-cyan-500 cursor-pointer">
+                        <option value="all">All Languages</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none"></i>
+                </div>
+
+                <!-- Sort Dropdown -->
+                <div class="relative min-w-[140px]">
+                    <select id="sort-select" class="w-full appearance-none bg-dark-900/80 border border-gray-700/60 text-gray-300 text-xs font-medium py-2.5 pl-3 pr-8 rounded-xl focus:outline-none focus:border-cyan-500 cursor-pointer">
+                        <option value="updated">Recently Updated</option>
+                        <option value="stars">Most Stars</option>
+                        <option value="name">Repository Name</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none"></i>
+                </div>
+
+                <!-- Grid/List View Controls -->
+                <div class="flex items-center bg-dark-900/80 p-1 rounded-xl border border-gray-700/60">
+                    <button id="view-grid-btn" title="Grid View" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-cyan-400 bg-gray-800">
+                        <i class="fa-solid fa-border-all"></i>
+                    </button>
+                    <button id="view-list-btn" title="List View" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-gray-400 hover:text-white">
+                        <i class="fa-solid fa-list"></i>
+                    </button>
+                </div>
+
+                <!-- Refresh Button -->
+                <button id="refresh-btn" title="Re-sync GitHub API" class="px-3.5 py-2.5 bg-dark-900/80 hover:bg-gray-800 border border-gray-700/60 text-gray-300 rounded-xl text-xs font-medium transition-all flex items-center gap-2">
+                    <i id="refresh-icon" class="fa-solid fa-arrows-rotate"></i>
+                    <span class="hidden sm:inline">Sync</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Dynamic Content Grid / Container -->
+        <main id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Project Cards dynamically rendered here -->
+        </main>
+
+        <!-- Empty Results Message -->
+        <div id="no-results" class="hidden text-center py-16 glass-panel rounded-2xl my-6">
+            <i class="fa-solid fa-folder-open text-4xl text-gray-600 mb-3"></i>
+            <h3 class="text-lg font-medium text-gray-300">No repositories found</h3>
+            <p class="text-sm text-gray-500 mt-1">Try adjusting your search terms or active filters.</p>
+            <button id="reset-filters-btn" class="mt-4 px-4 py-2 bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/30 border border-cyan-500/30 rounded-xl text-xs font-medium transition-all">
+                Reset Filters
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-16 border-t border-gray-800/60 py-6 text-center text-xs text-gray-500 font-mono">
+        <p>Dynamic GitHub Integration Engine • Auto-updating for <a href="https://github.com/Jeet1466" target="_blank" class="text-gray-400 hover:text-cyan-400 underline">Jeet1466</a></p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Target Username
+        const GITHUB_USERNAME = 'Jeet1466';
+
+        // Fallback projects repository mock data (for network failures or static showcase mode)
+        const FALLBACK_PROJECTS = [
+            {
+                id: 101,
+                name: 'EventSetu',
+                description: 'A comprehensive event management platform connecting organizers, attendees, and vendors seamlessly with real-time updates and scheduling.',
+                html_url: `https://github.com/${GITHUB_USERNAME}/EventSetu`,
+                homepage: 'https://eventsetu.demo.app',
+                language: 'TypeScript',
+                stargazers_count: 18,
+                forks_count: 5,
+                updated_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+                topics: ['fullstack', 'react', 'nodejs', 'events']
+            },
+            {
+                id: 102,
+                name: 'SubSurf',
+                description: 'Subdomain discovery and network intelligence tool designed for security researchers and web infrastructure developers.',
+                html_url: `https://github.com/${GITHUB_USERNAME}/SubSurf`,
+                homepage: null,
+                language: 'Python',
+                stargazers_count: 14,
+                forks_count: 3,
+                updated_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+                topics: ['cybersecurity', 'subdomain-enum', 'python', 'recon']
+            },
+            {
+                id: 103,
+                name: 'SphereWalk_Test',
+                description: 'Interactive 3D spatial simulation and pathfinding environment testing spherical geometry mechanics in real-time canvas.',
+                html_url: `https://github.com/${GITHUB_USERNAME}/SphereWalk_Test`,
+                homepage: null,
+                language: 'C++',
+                stargazers_count: 9,
+                forks_count: 2,
+                updated_at: new Date(Date.now() - 86400000 * 12).toISOString(),
+                topics: ['3d-graphics', 'simulation', 'cpp', 'geometry']
+            },
+            {
+                id: 104,
+                name: 'MediaLoopTech',
+                description: 'High-throughput automated media processing pipeline for video clipping, watermarking, and multi-platform publishing.',
+                html_url: `https://github.com/${GITHUB_USERNAME}/MediaLoopTech`,
+                homepage: 'https://medialoop.tech',
+                language: 'JavaScript',
+                stargazers_count: 22,
+                forks_count: 7,
+                updated_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+                topics: ['ffmpeg', 'automation', 'javascript', 'media']
+            }
+        ];
+
+        // Language Colors Mapping
+        const LANGUAGE_COLORS = {
+            'JavaScript': '#f1e05a',
+            'TypeScript': '#3178c6',
+            'Python': '#3572A5',
+            'C++': '#f34b7d',
+            'C#': '#178600',
+            'HTML': '#e34c26',
+            'CSS': '#563d7c',
+            'Java': '#b07219',
+            'Go': '#00ADD8',
+            'Rust': '#dea584',
+            'PHP': '#4F5D95',
+            'Vue': '#41b883',
+            'Dart': '#00B4AB'
+        };
+
+        // Application State
+        let allProjects = [];
+        let activeViewMode = 'grid'; // 'grid' | 'list'
+        let isUsingFallback = false;
+
+        // DOM Elements
+        const projectsContainer = document.getElementById('projects-container');
+        const searchInput = document.getElementById('search-input');
+        const languageSelect = document.getElementById('language-select');
+        const sortSelect = document.getElementById('sort-select');
+        const viewGridBtn = document.getElementById('view-grid-btn');
+        const viewListBtn = document.getElementById('view-list-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const refreshIcon = document.getElementById('refresh-icon');
+        const dataSourceBadge = document.getElementById('data-source-badge');
+        const noResults = document.getElementById('no-results');
+        const resetFiltersBtn = document.getElementById('reset-filters-btn');
+
+        // Profile DOM
+        const avatarImg = document.getElementById('avatar-img');
+        const profileName = document.getElementById('profile-name');
+        const profileLink = document.getElementById('profile-link');
+        const statRepos = document.getElementById('stat-repos');
+        const statStars = document.getElementById('stat-stars');
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            initData();
+        });
+
+        // Setup Interactive Listeners
+        function setupEventListeners() {
+            searchInput.addEventListener('input', renderProjects);
+            languageSelect.addEventListener('change', renderProjects);
+            sortSelect.addEventListener('change', renderProjects);
+
+            viewGridBtn.addEventListener('click', () => setViewMode('grid'));
+            viewListBtn.addEventListener('click', () => setViewMode('list'));
+
+            refreshBtn.addEventListener('click', () => {
+                refreshIcon.classList.add('fa-spin');
+                initData().finally(() => {
+                    setTimeout(() => refreshIcon.classList.remove('fa-spin'), 600);
+                });
+            });
+
+            resetFiltersBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                languageSelect.value = 'all';
+                sortSelect.value = 'updated';
+                renderProjects();
+            });
+        }
+
+        // View Mode Toggle
+        function setViewMode(mode) {
+            activeViewMode = mode;
+            if (mode === 'grid') {
+                viewGridBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-cyan-400 bg-gray-800';
+                viewListBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-gray-400 hover:text-white';
+                projectsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+            } else {
+                viewListBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-cyan-400 bg-gray-800';
+                viewGridBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-gray-400 hover:text-white';
+                projectsContainer.className = 'flex flex-col gap-4';
+            }
+            renderProjects();
+        }
+
+        // Display Loading Skeletons
+        function renderSkeletons() {
+            projectsContainer.innerHTML = Array(6).fill(0).map(() => `
+                <div class="glass-card rounded-2xl p-5 border border-gray-800 animate-pulse flex flex-col justify-between h-56">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="h-5 bg-gray-800 rounded w-1/2"></div>
+                            <div class="h-4 bg-gray-800 rounded w-12"></div>
+                        </div>
+                        <div class="h-3 bg-gray-800/70 rounded w-full mb-2"></div>
+                        <div class="h-3 bg-gray-800/70 rounded w-4/5"></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-800/50">
+                        <div class="h-3 bg-gray-800 rounded w-16"></div>
+                        <div class="h-3 bg-gray-800 rounded w-20"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Main Data Initialization Function
+        async function initData() {
+            renderSkeletons();
+            
+            try {
+                // Fetch GitHub user profile and repos in parallel
+                const [userRes, reposRes] = await Promise.all([
+                    fetch(`https://api.github.com/users/${GITHUB_USERNAME}`),
+                    fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`)
+                ]);
+
+                if (!userRes.ok || !reposRes.ok) {
+                    throw new Error('GitHub API rate limit exceeded or user not found.');
+                }
+
+                const userData = await userRes.json();
+                const reposData = await reposRes.json();
+
+                // Update Profile Info
+                avatarImg.src = userData.avatar_url || avatarImg.src;
+                profileName.textContent = userData.name || GITHUB_USERNAME;
+                statRepos.textContent = userData.public_repos || reposData.length;
+
+                // Process Live Repositories
+                allProjects = reposData.map(repo => ({
+                    id: repo.id,
+                    name: repo.name,
+                    description: repo.description || 'No description provided.',
+                    html_url: repo.html_url,
+                    homepage: repo.homepage,
+                    language: repo.language || 'Other',
+                    stargazers_count: repo.stargazers_count || 0,
+                    forks_count: repo.forks_count || 0,
+                    updated_at: repo.updated_at,
+                    topics: repo.topics || []
+                }));
+
+                isUsingFallback = false;
+                dataSourceBadge.textContent = 'API Live Feed';
+                dataSourceBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-emerald-950 text-emerald-400 border border-emerald-800/50';
+
+            } catch (err) {
+                console.warn('Unable to fetch live GitHub API. Falling back to showcase portfolio mode.', err);
+                
+                // Fallback Mode Activation
+                allProjects = FALLBACK_PROJECTS;
+                isUsingFallback = true;
+                
+                avatarImg.src = `https://github.com/${GITHUB_USERNAME}.png`;
+                avatarImg.onerror = () => { avatarImg.src = 'https://placehold.co/100x100/111827/06B6D4?text=J'; };
+                
+                dataSourceBadge.textContent = 'Showcase Mode';
+                dataSourceBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-amber-950 text-amber-300 border border-amber-800/50';
+                
+                statRepos.textContent = FALLBACK_PROJECTS.length;
+            }
+
+            // Calculate total stars
+            const totalStars = allProjects.reduce((acc, curr) => acc + curr.stargazers_count, 0);
+            statStars.textContent = totalStars;
+
+            // Populate Languages Dropdown
+            populateLanguageFilter();
+
+            // Render Rendered Projects List
+            renderProjects();
+        }
+
+        // Populate Language Selector
+        function populateLanguageFilter() {
+            const languages = new Set();
+            allProjects.forEach(p => {
+                if (p.language) languages.add(p.language);
+            });
+
+            // Save currently selected language if exists
+            const currentSelected = languageSelect.value;
+
+            languageSelect.innerHTML = '<option value="all">All Languages</option>';
+            Array.from(languages).sort().forEach(lang => {
+                const opt = document.createElement('option');
+                opt.value = lang;
+                opt.textContent = lang;
+                languageSelect.appendChild(opt);
+            });
+
+            if (Array.from(languages).includes(currentSelected)) {
+                languageSelect.value = currentSelected;
+            }
+        }
+
+        // Render Filtered and Sorted Projects
+        function renderProjects() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedLang = languageSelect.value;
+            const sortBy = sortSelect.value;
+
+            // 1. Filter
+            let filtered = allProjects.filter(project => {
+                const matchesSearch = 
+                    project.name.toLowerCase().includes(searchTerm) ||
+                    project.description.toLowerCase().includes(searchTerm) ||
+                    (project.topics && project.topics.some(t => t.toLowerCase().includes(searchTerm)));
+
+                const matchesLang = selectedLang === 'all' || project.language === selectedLang;
+
+                return matchesSearch && matchesLang;
+            });
+
+            // 2. Sort
+            filtered.sort((a, b) => {
+                if (sortBy === 'stars') {
+                    return b.stargazers_count - a.stargazers_count;
+                } else if (sortBy === 'name') {
+                    return a.name.localeCompare(b.name);
+                } else {
+                    // Default: Recently Updated
+                    return new Date(b.updated_at) - new Date(a.updated_at);
+                }
+            });
+
+            // Handle Empty State
+            if (filtered.length === 0) {
+                projectsContainer.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            // 3. Render HTML Cards
+            if (activeViewMode === 'grid') {
+                projectsContainer.innerHTML = filtered.map(project => createGridCardHTML(project)).join('');
+            } else {
+                projectsContainer.innerHTML = filtered.map(project => createListCardHTML(project)).join('');
+            }
+        }
+
+        // Helper to format date
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        // Grid View HTML Component
+        function createGridCardHTML(project) {
+            const langColor = LANGUAGE_COLORS[project.language] || '#9CA3AF';
+            const updatedDate = formatDate(project.updated_at);
+
+            return `
+                <div class="glass-card rounded-2xl p-5 flex flex-col justify-between group">
+                    <div>
+                        <!-- Header / Title -->
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <h3 class="font-bold text-lg text-white group-hover:text-cyan-400 transition-colors line-clamp-1">
+                                <a href="${project.html_url}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-2">
+                                    <i class="fa-regular fa-folder text-cyan-400 text-base"></i>
+                                    ${project.name}
+                                </a>
+                            </h3>
+                            ${project.homepage ? `
+                                <a href="${project.homepage}" target="_blank" rel="noopener noreferrer" title="Live Preview" class="text-gray-400 hover:text-white p-1 text-xs">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            ` : ''}
+                        </div>
+
+                        <!-- Description -->
+                        <p class="text-gray-400 text-xs sm:text-sm line-clamp-3 mb-4 leading-relaxed font-sans">
+                            ${project.description}
+                        </p>
+                    </div>
+
+                    <div>
+                        <!-- Topics Tags -->
+                        ${project.topics && project.topics.length > 0 ? `
+                            <div class="flex flex-wrap gap-1.5 mb-4">
+                                ${project.topics.slice(0, 3).map(topic => `
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-950/60 text-cyan-300 border border-cyan-800/40">
+                                        #${topic}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <!-- Meta Info / Footer -->
+                        <div class="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-800/80 font-mono">
+                            <div class="flex items-center gap-2">
+                                <span class="language-dot" style="background-color: ${langColor}"></span>
+                                <span class="text-gray-300 font-medium">${project.language}</span>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <span title="Stars" class="flex items-center gap-1 hover:text-amber-400 transition-colors">
+                                    <i class="fa-regular fa-star text-amber-400"></i> ${project.stargazers_count}
+                                </span>
+                                <span title="Forks" class="flex items-center gap-1">
+                                    <i class="fa-solid fa-code-fork text-gray-400"></i> ${project.forks_count}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // List View HTML Component
+        function createListCardHTML(project) {
+            const langColor = LANGUAGE_COLORS[project.language] || '#9CA3AF';
+            const updatedDate = formatDate(project.updated_at);
+
+            return `
+                <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1">
+                            <h3 class="font-bold text-base text-white group-hover:text-cyan-400 transition-colors">
+                                <a href="${project.html_url}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-2">
+                                    <i class="fa-regular fa-folder text-cyan-400 text-sm"></i>
+                                    ${project.name}
+                                </a>
+                            </h3>
+                            <div class="flex items-center gap-1.5 text-xs font-mono px-2 py-0.5 rounded bg-gray-800/80 text-gray-300">
+                                <span class="language-dot" style="background-color: ${langColor}"></span>
+                                <span>${project.language}</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-xs sm:text-sm line-clamp-1 font-sans">
+                            ${project.description}
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto text-xs text-gray-400 font-mono pt-2 sm:pt-0 border-t sm:border-0 border-gray-800">
+                        <div class="flex items-center gap-4">
+                            <span title="Stars" class="flex items-center gap-1 text-gray-300">
+                                <i class="fa-regular fa-star text-amber-400"></i> ${project.stargazers_count}
+                            </span>
+                            <span title="Forks" class="flex items-center gap-1">
+                                <i class="fa-solid fa-code-fork text-gray-400"></i> ${project.forks_count}
+                            </span>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            ${project.homepage ? `
+                                <a href="${project.homepage}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 bg-cyan-950/60 text-cyan-400 hover:bg-cyan-900/60 border border-cyan-800/50 rounded-lg text-xs transition-colors flex items-center gap-1">
+                                    <span>Demo</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                </a>
+                            ` : ''}
+                            <a href="${project.html_url}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-xs transition-colors">
+                                Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

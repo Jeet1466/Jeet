@@ -102,7 +102,7 @@ export const ContactModal: React.FC = () => {
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="bg-[#dfff00] text-[#121414] font-technical text-[12px] font-bold uppercase tracking-wider py-3 px-7 rounded-sm hover:brightness-110 transition-all flex items-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(223,255,0,0.25)]"
+                className="bg-[#dfff00] text-[#121414] font-technical text-[12px] font-bold uppercase tracking-wider py-3 px-7 rounded-sm hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <span>Send Message</span>
                 <Send className="w-3.5 h-3.5" />

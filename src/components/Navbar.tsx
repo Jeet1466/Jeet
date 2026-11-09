@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../data/store';
-import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { Menu, X, ArrowUpRight, FolderGit2 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { setIsContactOpen, config } = useApp();
+  const { setIsContactOpen, config, setIsAdminOpen, setScreen } = useApp();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Close nav on ESC key
@@ -40,32 +40,44 @@ export const Navbar: React.FC = () => {
             }}
             className="bg-transparent border-none p-0 flex items-center gap-2.5 cursor-pointer group hover:opacity-90 transition-opacity focus:outline-none"
           >
-            
-            <span className="font-display text-[20px] sm:text-[30px] text-[#dfff00] tracking-tight uppercase font-black drop-shadow-md">
+            <span className="font-display text-[20px] sm:text-[30px] text-[#dfff00] tracking-tight uppercase font-black">
               {config.ownerName || 'JEET PATEL'}
             </span>
           </button>
         </div>
 
         {/* Floating Action Buttons */}
-        <div className="pointer-events-auto flex items-center gap-2.5 sm:gap-3">
-          {/* Contact button: styled like Initialize Sequence (solid cyber yellow, bold, tracking-widest, shadow) */}
+        <div className="pointer-events-auto flex items-center gap-2 sm:gap-2.5">
+          {/* Admin Panel button: direct access to GitHub Repos Manager */}
+          <button
+            onClick={() => {
+              setIsAdminOpen(true);
+              setScreen('admin');
+            }}
+            className="border border-[#dfff00]/40 hover:border-[#dfff00] bg-[#171919]/90 hover:bg-[#1f2222] text-[#dfff00] font-technical text-[11px] sm:text-[12px] py-2 sm:py-2.5 px-3 sm:px-4 rounded-sm uppercase tracking-widest font-bold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer backdrop-blur-md"
+            title="Open Projects Admin Console & GitHub Exporter"
+          >
+            <FolderGit2 className="w-3.5 h-3.5 text-[#dfff00]" />
+            <span>ADMIN</span>
+          </button>
+
+          {/* Contact button */}
           <button
             onClick={() => setIsContactOpen(true)}
-            className="bg-[#dfff00] text-[#121414] font-technical text-[11px] sm:text-[12px] py-2 sm:py-2.5 px-4 sm:px-6 rounded-sm uppercase tracking-widest font-bold shadow-[0_0_15px_rgba(223,255,0,0.3)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+            className="bg-[#dfff00] text-[#121414] font-technical text-[11px] sm:text-[12px] py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-sm uppercase tracking-widest font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer"
           >
             Contact
           </button>
 
-          {/* Menu button: styled like View Telemetry (hollow border, cyber yellow outline, hover glow) */}
+          {/* Menu button */}
           <button
             onClick={() => setIsMenuOpen(true)}
-            className="border border-[#dfff00] text-[#dfff00] font-technical text-[11px] sm:text-[12px] py-2 sm:py-2.5 px-4 sm:px-5 rounded-sm hover:bg-[#dfff00]/10 uppercase tracking-widest font-semibold flex items-center gap-2 shadow-[0_0_10px_rgba(223,255,0,0.15)] active:scale-95 transition-all cursor-pointer"
+            className="border border-[#dfff00]/70 text-[#dfff00] font-technical text-[11px] sm:text-[12px] py-2 sm:py-2.5 px-3.5 sm:px-4 rounded-sm hover:bg-[#dfff00]/10 uppercase tracking-widest font-semibold flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
             title="Open Navigation Menu"
             aria-label="Open Navigation Matrix"
           >
             <Menu className="w-4 h-4 text-[#dfff00]" />
-            <span>MENU</span>
+            <span className="hidden sm:inline">MENU</span>
           </button>
         </div>
       </header>
@@ -78,7 +90,7 @@ export const Navbar: React.FC = () => {
           {/* Top Header of Nav Overlay */}
           <div className="flex justify-between items-center border-b border-white/10 pb-6">
             <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#dfff00] shadow-[0_0_8px_#dfff00] animate-pulse"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#dfff00]"></span>
               <span className="font-technical text-[11px] sm:text-[12px] text-[#dfff00] uppercase tracking-widest font-bold">
                 [ NAVIGATION_MATRIX // SYSTEM_ROOT ]
               </span>
@@ -158,6 +170,27 @@ export const Navbar: React.FC = () => {
                     </span>
                     <span className="font-display text-[32px] sm:text-[48px] md:text-[62px] text-white uppercase font-black tracking-tight group-hover:text-[#dfff00] group-hover:translate-x-3 transition-all duration-200">
                       Kinetic Dispatch
+                    </span>
+                  </div>
+                  <ArrowUpRight className="w-6 h-6 text-white/30 group-hover:text-[#dfff00] group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+                </button>
+              </li>
+
+              <li>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsAdminOpen(true);
+                    setScreen('admin');
+                  }}
+                  className="group flex items-center justify-between w-full text-left py-2 border-b border-white/5 hover:border-[#dfff00]/40 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-baseline gap-4 sm:gap-6">
+                    <span className="font-technical text-[13px] sm:text-[15px] text-[#dfff00] font-mono">
+                      05 //
+                    </span>
+                    <span className="font-display text-[32px] sm:text-[48px] md:text-[62px] text-white uppercase font-black tracking-tight group-hover:text-[#dfff00] group-hover:translate-x-3 transition-all duration-200">
+                      GitHub Admin Console
                     </span>
                   </div>
                   <ArrowUpRight className="w-6 h-6 text-white/30 group-hover:text-[#dfff00] group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />

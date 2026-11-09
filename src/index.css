@@ -42,8 +42,8 @@
 }
 
 .kinetic-hover:hover {
-  transform: skewX(-2deg) translateY(-2px);
-  box-shadow: 2px 2px 0 0 #dfff00;
+  transform: translateY(-2px);
+  filter: brightness(1.06);
 }
 
 .glass-panel {

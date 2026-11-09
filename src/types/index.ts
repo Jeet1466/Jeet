@@ -1,6 +1,6 @@
 export type ScreenMode = 'portfolio' | 'admin';
 
-export type ProjectCategory = 'Fullstack' | 'Systems' | 'Infrastructure' | 'AI / ML';
+export type ProjectCategory = 'Fullstack' | 'Systems' | 'Infrastructure' | 'AI / ML' | 'Cybersecurity';
 
 export type ProjectStatus = 'ACTIVE' | 'DEPLOYED' | 'BETA' | 'ARCHIVED';
 
@@ -25,6 +25,13 @@ export interface Project {
   featured: boolean;
   gridSpan?: 'normal' | 'wide' | 'full'; // wide = 8 cols, normal = 4 cols, full = 12 cols
   updatedAt: string;
+  // GitHub integration properties
+  stars?: number;
+  forks?: number;
+  language?: string;
+  topics?: string[];
+  repoName?: string;
+  selected?: boolean;
 }
 
 export type TopicInterest = 'All Systems' | 'AI & Architecture' | 'Kinetic UX' | 'Engineering Research';

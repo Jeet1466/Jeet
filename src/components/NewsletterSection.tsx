@@ -146,7 +146,7 @@ export const NewsletterSection: React.FC = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full bg-[#dfff00] text-[#121414] font-technical text-[12px] py-3.5 px-6 rounded-sm kinetic-hover uppercase tracking-widest font-black flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(223,255,0,0.3)] cursor-pointer"
+                  className="w-full bg-[#dfff00] text-[#121414] font-technical text-[12px] py-3.5 px-6 rounded-sm kinetic-hover uppercase tracking-widest font-black flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                   <span>Subscribe Now</span>

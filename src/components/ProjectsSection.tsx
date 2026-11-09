@@ -1,22 +1,26 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../data/store';
 import { ProjectCategory } from '../types';
-import { ExternalLink, Github, Layers, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ExternalLink, Github, Layers, ArrowRight, ArrowLeft, FolderGit2, Star, GitFork } from 'lucide-react';
 import { MatrixBackground } from './MatrixBackground';
+import { GITHUB_LANGUAGE_COLORS } from './AdminPanel';
 
 export const ProjectsSection: React.FC = () => {
-  const { projects } = useApp();
+  const { projects, setIsAdminOpen, setScreen } = useApp();
   const [filter, setFilter] = useState<'ALL' | ProjectCategory>('ALL');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Filter only projects that are selected by admin
   const filteredProjects = useMemo(() => {
-    return projects.filter(p => {
-      if (filter === 'ALL') return true;
-      return p.category === filter;
-    });
+    return projects
+      .filter(p => p.selected !== false)
+      .filter(p => {
+        if (filter === 'ALL') return true;
+        return p.category === filter;
+      });
   }, [projects, filter]);
 
   const totalCards = filteredProjects.length;
@@ -78,8 +82,8 @@ export const ProjectsSection: React.FC = () => {
     >
       {/* Sticky Fullscreen Viewport */}
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between py-4 sm:py-6 bg-[#121414] relative">
-        {/* Matrix Background with Decreased Subtle Glow */}
-        <MatrixBackground glowOpacity="subtle" />
+        {/* Matrix Background */}
+        <MatrixBackground glowOpacity="none" />
 
         {/* ======================================================== */}
         {/* 1. TOP HEADER & FILTER BAR */}
@@ -87,27 +91,40 @@ export const ProjectsSection: React.FC = () => {
         <div className="relative z-20 max-w-[1240px] w-full mx-auto px-4 sm:px-8 flex flex-col md:flex-row md:items-end justify-between gap-3 pt-12 sm:pt-14 pb-2 border-b border-white/10">
           <div>
             <div className="flex items-center gap-2 font-technical text-[11px] text-[#dfff00] tracking-widest uppercase mb-1">
-              <span className="w-2.5 h-2.5 bg-[#dfff00] inline-block animate-pulse shadow-[0_0_8px_#dfff00]"></span>
+              <span className="w-2.5 h-2.5 bg-[#dfff00] inline-block"></span>
               <span>[ SELECTED_ARCHITECTURE // CENTERED_SHOWCASE ]</span>
             </div>
             <h2 className="font-display text-[26px] sm:text-[34px] md:text-[40px] text-white uppercase font-black tracking-tight leading-none">
               Featured Projects
             </h2>
             <p className="text-[#a0a5a5] text-xs sm:text-sm mt-1 font-mono">
-              Scroll down to slide each project horizontally into the center.
+              Live GitHub repository architecture cards. Scroll down to slide each project into center.
             </p>
           </div>
 
           {/* Filter Chips & Nav Controls */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Admin Console Shortcut */}
+            <button
+              onClick={() => {
+                setIsAdminOpen(true);
+                setScreen('admin');
+              }}
+              className="px-2.5 py-1.5 bg-[#171919] hover:bg-[#1f2222] text-[#dfff00] border border-[#dfff00]/40 rounded-sm font-technical text-[10px] uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Open Admin Console to select/export GitHub repos"
+            >
+              <FolderGit2 className="w-3.5 h-3.5 text-[#dfff00]" />
+              <span>Manage Repos</span>
+            </button>
+
             <div className="flex flex-wrap items-center gap-1 p-1 bg-[#161818] border border-white/10 rounded-sm">
-              {(['ALL', 'Fullstack', 'Systems', 'Infrastructure', 'AI / ML'] as const).map(cat => (
+              {(['ALL', 'Fullstack', 'AI / ML', 'Cybersecurity', 'Systems', 'Infrastructure'] as const).map(cat => (
                 <button
                   key={cat}
                   onClick={() => setFilter(cat)}
-                  className={`font-technical text-[10px] sm:text-[11px] px-3 py-1.5 rounded-sm uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`font-technical text-[10px] sm:text-[11px] px-2.5 py-1.5 rounded-sm uppercase tracking-wider transition-all cursor-pointer ${
                     filter === cat
-                      ? 'bg-[#dfff00] text-[#121414] font-bold shadow-[0_0_12px_#dfff00]'
+                      ? 'bg-[#dfff00] text-[#121414] font-bold'
                       : 'text-[#c6c9ab] hover:text-white hover:bg-[#202222]'
                   }`}
                 >
@@ -176,14 +193,14 @@ export const ProjectsSection: React.FC = () => {
                     }}
                     className={`w-full max-w-[1080px] rounded-md border p-4 sm:p-6 md:p-7 flex flex-col justify-between glass-panel relative overflow-hidden transform-gpu select-text cursor-pointer max-h-[calc(100vh-150px)] ${
                       isCentered
-                        ? 'border-[#dfff00] bg-[#151818]/95 shadow-[0_0_35px_rgba(223,255,0,0.18)] ring-1 ring-[#dfff00]/40'
+                        ? 'border-[#dfff00] bg-[#151818]/95 ring-1 ring-[#dfff00]/40 shadow-xl'
                         : 'border-white/10 bg-[#121414]/90 hover:border-white/25'
                     }`}
                   >
                     {/* Active Top Highlight Stripe */}
                     <div
-                      className={`absolute top-0 left-0 h-[3px] transition-all duration-500 ${
-                        isCentered ? 'w-full bg-[#dfff00] shadow-[0_0_12px_#dfff00]' : 'w-20 bg-white/20'
+                      className={`absolute top-0 left-0 h-[2px] transition-all duration-500 ${
+                        isCentered ? 'w-full bg-[#dfff00]' : 'w-20 bg-white/20'
                       }`}
                     />
 
@@ -195,14 +212,35 @@ export const ProjectsSection: React.FC = () => {
                           {project.subtitle || project.category}
                         </div>
 
+                        {/* GitHub Language Badge if available */}
+                        {project.language && (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-white/10 rounded-sm font-technical text-[10px] text-gray-300 bg-[#161818]">
+                            <span
+                              className="w-2 h-2 rounded-full inline-block"
+                              style={{
+                                backgroundColor:
+                                  GITHUB_LANGUAGE_COLORS[project.language] || GITHUB_LANGUAGE_COLORS.Other
+                              }}
+                            />
+                            <span>{project.language}</span>
+                          </div>
+                        )}
+
                         {isCentered && (
-                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-[#dfff00] bg-[#dfff00]/20 text-[#dfff00] font-technical text-[9px] uppercase tracking-widest rounded-xs animate-pulse font-bold">
-                            <span>● CENTERED_FOCUS</span>
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-[#dfff00]/60 bg-[#dfff00]/10 text-[#dfff00] font-technical text-[9px] uppercase tracking-widest rounded-xs font-bold">
+                            <span>● FOCUS</span>
                           </div>
                         )}
                       </div>
 
                       <div className="flex items-center gap-3">
+                        {/* GitHub Stars & Forks if available */}
+                        {typeof project.stars === 'number' && (
+                          <span className="flex items-center gap-1 font-technical text-[11px] text-amber-300">
+                            <Star className="w-3.5 h-3.5 fill-amber-400/40 text-amber-400" />
+                            <span>{project.stars}</span>
+                          </span>
+                        )}
                         <span className="font-technical text-[10px] text-white/50 font-mono hidden sm:inline-block">
                           REVISION: {project.updatedAt}
                         </span>
@@ -335,7 +373,7 @@ export const ProjectsSection: React.FC = () => {
                             target="_blank"
                             rel="noreferrer"
                             onClick={e => e.stopPropagation()}
-                            className="px-3.5 py-1 bg-[#dfff00] text-[#121414] hover:bg-[#dfff00]/90 rounded-sm font-technical text-[10px] uppercase tracking-widest font-bold flex items-center gap-1.5 shadow-[0_0_10px_rgba(223,255,0,0.3)] transition-colors cursor-pointer"
+                            className="px-3.5 py-1 bg-[#dfff00] text-[#121414] hover:bg-[#dfff00]/90 rounded-sm font-technical text-[10px] uppercase tracking-widest font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <span>Live Deployment</span>
                             <ExternalLink className="w-3 h-3" />
@@ -360,7 +398,7 @@ export const ProjectsSection: React.FC = () => {
             </span>
             <div className="w-40 sm:w-56 h-1 bg-[#1e2020] rounded-full overflow-hidden border border-white/10 relative">
               <div
-                className="h-full bg-gradient-to-r from-[#dfff00] to-[#00f0ff] transition-all duration-150 shadow-[0_0_8px_#dfff00]"
+                className="h-full bg-gradient-to-r from-[#dfff00] to-cyan-400 transition-all duration-150"
                 style={{ width: `${Math.round(scrollProgress * 100)}%` }}
               />
             </div>
@@ -377,7 +415,7 @@ export const ProjectsSection: React.FC = () => {
                 onClick={() => scrollToCard(idx)}
                 className={`h-1.5 transition-all duration-300 rounded-full cursor-pointer ${
                   activeIndex === idx
-                    ? 'w-6 bg-[#dfff00] shadow-[0_0_8px_#dfff00]'
+                    ? 'w-6 bg-[#dfff00]'
                     : 'w-2 bg-white/20 hover:bg-white/40'
                 }`}
                 title={`Jump to project #${idx + 1}`}

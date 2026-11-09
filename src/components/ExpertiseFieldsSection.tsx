@@ -85,7 +85,7 @@ export const ExpertiseFieldsSection: React.FC = () => {
         {/* Section Header */}
         <div className="mb-16 sm:mb-20">
           <div className="flex items-center gap-2 font-technical text-[12px] text-[#dfff00] tracking-widest uppercase mb-3">
-            <span className="w-2.5 h-2.5 bg-[#dfff00] inline-block animate-pulse shadow-[0_0_8px_#dfff00]"></span>
+            <span className="w-2.5 h-2.5 bg-[#dfff00] inline-block"></span>
             <span>[ WHAT_I_DO // SPECIALIZED_FIELDS ]</span>
           </div>
           
@@ -109,7 +109,7 @@ export const ExpertiseFieldsSection: React.FC = () => {
                 data-field-id={field.id}
                 style={{
                   transformStyle: 'preserve-3d',
-                  transition: 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.75s ease-out, filter 0.75s ease-out, border-color 0.4s ease, box-shadow 0.4s ease'
+                  transition: 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.75s ease-out, filter 0.75s ease-out, border-color 0.4s ease'
                 }}
                 className={`relative rounded-md p-6 sm:p-10 md:p-12 glass-panel border transform-gpu ${
                   isVisible
@@ -117,14 +117,14 @@ export const ExpertiseFieldsSection: React.FC = () => {
                     : 'opacity-20 scale-[0.88] translate-y-16 blur-[3px] [transform:rotateX(7deg)_translateZ(-80px)]'
                 } ${
                   isActive
-                    ? 'border-[#dfff00] bg-[#141616]/95 shadow-[0_0_40px_rgba(223,255,0,0.18)] ring-1 ring-[#dfff00]/40'
+                    ? 'border-[#dfff00] bg-[#141616]/95 ring-1 ring-[#dfff00]/40'
                     : 'border-white/10 bg-[#101212]/75 hover:border-white/20'
                 }`}
               >
                 {/* Active Indicator Top Stripe */}
                 <div
-                  className={`absolute top-0 left-0 h-[3px] transition-all duration-500 ${
-                    isActive ? 'w-full bg-[#dfff00] shadow-[0_0_12px_#dfff00]' : 'w-12 bg-white/20'
+                  className={`absolute top-0 left-0 h-[2px] transition-all duration-500 ${
+                    isActive ? 'w-full bg-[#dfff00]' : 'w-12 bg-white/20'
                   }`}
                 ></div>
 

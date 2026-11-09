@@ -11,10 +11,13 @@ interface AppContextType {
   config: SystemConfig;
   
   // Project actions
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   addProject: (project: Omit<Project, 'id' | 'updatedAt'>) => void;
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   toggleFeatured: (id: string) => void;
+  toggleProjectSelection: (id: string) => void;
+  selectAllProjects: (selected: boolean) => void;
   
   // Newsletter actions
   subscribe: (name: string, email: string, topic: TopicInterest) => { success: boolean; message: string };
@@ -27,6 +30,8 @@ interface AppContextType {
   resetToDefaults: () => void;
   
   // Modals & 3D view states
+  isAdminOpen: boolean;
+  setIsAdminOpen: (open: boolean) => void;
   selectedProject: Project | null;
   setSelectedProject: (p: Project | null) => void;
   isContactOpen: boolean;
@@ -40,7 +45,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 const STORAGE_KEYS = {
-  PROJECTS: 'kinetic_projects_v5',
+  PROJECTS: 'kinetic_projects_v7',
   SUBSCRIBERS: 'kinetic_subscribers_v5',
   CAMPAIGNS: 'kinetic_campaigns_v5',
   CONFIG: 'kinetic_config_v6'
@@ -93,6 +98,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   // Modals
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
@@ -130,6 +136,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Storage failed', e);
     }
   }, [config]);
+
+  // Project CRUD & Selection
+  const toggleProjectSelection = (id: string) => {
+    setProjects(prev =>
+      prev.map(p => (p.id === id ? { ...p, selected: p.selected === false ? true : false } : p))
+    );
+  };
+
+  const selectAllProjects = (selected: boolean) => {
+    setProjects(prev => prev.map(p => ({ ...p, selected })));
+  };
 
   // Project CRUD
   const addProject = (projectData: Omit<Project, 'id' | 'updatedAt'>) => {
@@ -238,6 +255,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         screen,
         setScreen,
         projects,
+        setProjects,
         subscribers,
         campaigns,
         config,
@@ -245,12 +263,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateProject,
         deleteProject,
         toggleFeatured,
+        toggleProjectSelection,
+        selectAllProjects,
         subscribe,
         deleteSubscriber,
         sendCampaign,
         deleteCampaign,
         updateConfig,
         resetToDefaults,
+        isAdminOpen,
+        setIsAdminOpen,
         selectedProject,
         setSelectedProject,
         isContactOpen,

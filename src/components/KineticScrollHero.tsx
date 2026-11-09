@@ -282,7 +282,7 @@ export const KineticScrollHero: React.FC = () => {
                     const el = document.getElementById('section-domains');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="bg-[#dfff00] text-[#121414] font-technical text-[12px] py-3.5 px-8 rounded-sm kinetic-hover uppercase tracking-widest font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(223,255,0,0.3)] cursor-pointer"
+                  className="bg-[#dfff00] text-[#121414] font-technical text-[12px] py-3.5 px-8 rounded-sm kinetic-hover uppercase tracking-widest font-bold flex items-center gap-2 cursor-pointer transition-transform hover:brightness-105 active:scale-95"
                 >
                   <span>Domains </span>
                   <ArrowDown className="w-4 h-4" />

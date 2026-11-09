@@ -15,13 +15,21 @@ import { Footer } from './components/Footer';
 import { ContactModal } from './components/ContactModal';
 import { KineticDesktop3D } from './components/KineticDesktop3D';
 import { FloatingBot } from './components/FloatingBot';
+import { AdminPanel } from './components/AdminPanel';
 import { X } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const {
+    screen,
+    isAdminOpen,
     is3DFullscreen,
     setIs3DFullscreen
   } = useApp();
+
+  // If in admin mode or admin is open, render AdminPanel directly
+  if (screen === 'admin' || isAdminOpen) {
+    return <AdminPanel />;
+  }
 
   return (
     <div className="min-h-screen bg-[#121414] text-[#e2e2e2] flex flex-col relative selection:bg-[#dfff00] selection:text-[#121414]">
@@ -61,7 +69,7 @@ const MainContent: React.FC = () => {
           {/* Top Bar for Fullscreen 3D */}
           <div className="flex justify-between items-center px-6 py-3 border-b border-white/10 bg-[#121414]/90 backdrop-blur-md z-30">
             <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#dfff00] shadow-[0_0_8px_#dfff00]"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#dfff00]"></span>
               <span className="font-technical text-[12px] text-[#dfff00] font-bold uppercase tracking-widest">
                 KINETIC_CODER_ROOM // 3D_STAGE
               </span>

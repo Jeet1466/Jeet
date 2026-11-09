@@ -90,7 +90,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.0;
     renderer.shadowMap.enabled = !isSoftwareGl;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
@@ -113,41 +113,35 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     controls.target.copy(_camStartLook);
     controlsRef.current = controls;
 
-    // 6. Atmospheric Studio Lighting Rig
-    const hemiLight = new THREE.HemisphereLight(0x4a5d6e, 0x121416, 0.95);
+    // 6. Atmospheric Stylized Studio Lighting (Warm, soft, no radioactive yellow glare)
+    const hemiLight = new THREE.HemisphereLight(0x7890a8, 0x1e2228, 1.25);
     scene.add(hemiLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    keyLight.position.set(2.8, 4.5, 2.5);
+    const keyLight = new THREE.DirectionalLight(0xfff7ea, 1.4);
+    keyLight.position.set(2.8, 4.2, 2.5);
     keyLight.castShadow = !isSoftwareGl;
     keyLight.shadow.mapSize.width = 1024;
     keyLight.shadow.mapSize.height = 1024;
     keyLight.shadow.bias = -0.0005;
     scene.add(keyLight);
 
-    // Warm Norris yellow ambient accents
-    const pointLight = new THREE.PointLight(0xdfff00, 2.4, 5.5);
-    pointLight.position.set(-1.8, 2.2, 1.2);
-    scene.add(pointLight);
+    // Gentle warm fill for desk workspace
+    const deskFill = new THREE.PointLight(0xffecd1, 0.75, 4.0);
+    deskFill.position.set(-0.8, 1.8, 0.4);
+    scene.add(deskFill);
 
-    const accentLight = new THREE.PointLight(0xdfff00, 2.0, 3.2); // Screen ambient rear halo behind monitor
+    // Subtle cool rear monitor back-halo
+    const accentLight = new THREE.PointLight(0x38bdf8, 0.45, 2.5);
     accentLight.position.set(0, 1.35, -0.52);
     scene.add(accentLight);
 
-    const deskGlow = new THREE.PointLight(0xdfff00, 2.0, 3.2); // Under-desk RGB rail
-    deskGlow.position.set(0, 0.45, 0.2);
-    scene.add(deskGlow);
-
-    const wallWash = new THREE.PointLight(0xdfff00, 2.2, 4.5); // Warm wash behind front wall acoustic slats
-    wallWash.position.set(0, 2.4, -2.8);
-    scene.add(wallWash);
-
-    const pcGlow = new THREE.PointLight(0xdfff00, 2.6, 2.2); // PC Chassis internal glow
+    // Gentle PC internal glow
+    const pcGlow = new THREE.PointLight(0x38bdf8, 0.5, 1.8);
     pcGlow.position.set(1.55, 1.15, -0.05);
     scene.add(pcGlow);
 
-    // Screen lightbar downlight spotlight
-    const lightBarSpot = new THREE.SpotLight(0xfff7e6, 3.4, 2.2, Math.PI / 4, 0.4, 1.2);
+    // Screen lightbar soft warm downlight
+    const lightBarSpot = new THREE.SpotLight(0xfff7e6, 1.8, 2.4, Math.PI / 4, 0.5, 1.2);
     lightBarSpot.position.set(0, 1.70, -0.38);
     lightBarSpot.target.position.set(0, 0.88, 0.05);
     scene.add(lightBarSpot);
@@ -373,7 +367,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
 
     const sillGlow = new THREE.Mesh(
       new THREE.BoxGeometry(5.5, 0.015, 0.02),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.85 })
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.15 })
     );
     sillGlow.position.set(0, 0.47, -3.05);
     rootGroup.add(sillGlow);
@@ -437,7 +431,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     // Warm ceiling wash light for back wall
     const backWash = new THREE.Mesh(
       new THREE.BoxGeometry(7.2, 0.02, 0.04),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9 })
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.18 })
     );
     backWash.position.set(0, 4.0, 3.52);
     rootGroup.add(backWash);
@@ -477,7 +471,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
 
     const handleGlow = new THREE.Mesh(
       new THREE.BoxGeometry(0.015, 1.02, 0.015),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9 })
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.2 })
     );
     handleGlow.position.set(0.48, 1.28, -0.038);
     doorGroup.add(handleGlow);
@@ -668,13 +662,13 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
 
     const boardFrameTrim = new THREE.Mesh(
       new THREE.BoxGeometry(3.64, 1.94, 0.01),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.95 })
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.15 })
     );
     boardFrameTrim.position.set(1.1, 2.15, 3.545);
     rootGroup.add(boardFrameTrim);
 
     // Dedicated Overhead Spotlight shining down on the Board
-    const boardSpot = new THREE.SpotLight(0xfff7e6, 4.2, 5.5, Math.PI / 3.2, 0.35, 1.1);
+    const boardSpot = new THREE.SpotLight(0xfff7e6, 1.6, 5.0, Math.PI / 3.2, 0.45, 1.1);
     boardSpot.position.set(1.1, 3.8, 2.3);
     boardSpot.target.position.set(1.1, 2.15, 3.54);
     rootGroup.add(boardSpot);
@@ -788,7 +782,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     // Ambient Corner Vertical Lamp on Left
     const cornerLamp = new THREE.Mesh(
       new THREE.CylinderGeometry(0.015, 0.015, 2.4, 16),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9 })
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.15 })
     );
     cornerLamp.position.set(-3.9, 1.2, -2.9);
     rootGroup.add(cornerLamp);
@@ -897,7 +891,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     // Right Wall Ambient Sconce Light
     const rightWallSconce = new THREE.Mesh(
       new THREE.CylinderGeometry(0.015, 0.015, 2.2, 16),
-      new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.9 })
+      new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.15 })
     );
     rightWallSconce.position.set(3.9, 1.2, -2.9);
     rootGroup.add(rightWallSconce);
@@ -928,10 +922,10 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     deskTop.receiveShadow = !isSoftwareGl;
     deskGroup.add(deskTop);
 
-    // Front edge RGB lightstrip
+    // Front edge RGB lightstrip (subtle warm tone)
     const edgeTrim = new THREE.Mesh(
       new THREE.BoxGeometry(3.38, 0.012, 0.02),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.9, roughness: 0.2 })
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.18, roughness: 0.2 })
     );
     edgeTrim.position.set(0, 0.85, 0.32);
     deskGroup.add(edgeTrim);
@@ -1116,7 +1110,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
 
     const gpuRgb = new THREE.Mesh(
       new THREE.BoxGeometry(0.052, 0.015, 0.24),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 1.0 })
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x38bdf8, emissiveIntensity: 0.25 })
     );
     gpuRgb.position.set(0.0, 0.012, 0.02);
     pcGroup.add(gpuRgb);
@@ -1125,7 +1119,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     for (let i = 0; i < 4; i++) {
       const ram = new THREE.Mesh(
         new THREE.BoxGeometry(0.01, 0.045, 0.08),
-        new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 1.0 })
+        new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x38bdf8, emissiveIntensity: 0.2 })
       );
       ram.position.set(0.02 + i * 0.014, 0.10, -0.05);
       pcGroup.add(ram);
@@ -1134,7 +1128,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     // Liquid CPU Cooler Pump
     const cpuPump = new THREE.Mesh(
       new THREE.CylinderGeometry(0.03, 0.03, 0.025, 16),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.85 })
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x38bdf8, emissiveIntensity: 0.2 })
     );
     cpuPump.rotation.z = Math.PI / 2;
     cpuPump.position.set(0.04, 0.07, 0.02);
@@ -1144,7 +1138,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const fanGeo = new THREE.CylinderGeometry(0.052, 0.052, 0.014, 12);
     fanGeo.rotateX(Math.PI / 2);
     const fanMat = new THREE.MeshStandardMaterial({
-      color: 0x282c2d, emissive: 0xdfff00, emissiveIntensity: 0.85, roughness: 0.25
+      color: 0x282c2d, emissive: 0x38bdf8, emissiveIntensity: 0.2, roughness: 0.4
     });
 
     const frontFan1 = new THREE.Mesh(fanGeo, fanMat);
@@ -1226,7 +1220,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
 
     const mugBand = new THREE.Mesh(
       new THREE.CylinderGeometry(0.039, 0.039, 0.02, 16),
-      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.7 })
+      new THREE.MeshStandardMaterial({ color: 0xdfff00, emissive: 0xdfff00, emissiveIntensity: 0.15 })
     );
     mugBand.position.set(-0.35, 0.94, -0.08);
     deskGroup.add(mugBand);
@@ -1743,13 +1737,15 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
         fan.rotation.z += delta * (14 + idx * 2);
       });
 
-      // Animate coffee steam particles
+      // Animate curling coffee steam particles (smooth organic drift)
       if (steamParticlesRef.current) {
         const posAttr = steamParticlesRef.current.geometry.attributes.position as THREE.BufferAttribute;
         for (let i = 0; i < 18; i++) {
-          let y = posAttr.getY(i) + delta * 0.06;
-          if (y > 1.15) y = 0.98;
+          let y = posAttr.getY(i) + delta * 0.07;
+          if (y > 1.18) y = 0.98;
           posAttr.setY(i, y);
+          posAttr.setX(i, -0.35 + Math.sin(elapsedTime * 2.5 + i * 0.5) * 0.014);
+          posAttr.setZ(i, -0.08 + Math.cos(elapsedTime * 2.2 + i * 0.4) * 0.014);
         }
         posAttr.needsUpdate = true;
       }
@@ -1769,6 +1765,12 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
         if (smoothedSp >= 0.98 && onDiveComplete) {
           onDiveComplete();
         }
+      } else if (!isFullscreen) {
+        // Stylized animated camera breathing idle: gives the room a warm, living Pixar-style diorama feeling
+        const breathX = Math.sin(elapsedTime * 0.75) * 0.018;
+        const breathY = Math.cos(elapsedTime * 0.95) * 0.012;
+        camera.position.x = _camStartPos.x + breathX;
+        camera.position.y = _camStartPos.y + breathY;
       }
 
       controls.update();
