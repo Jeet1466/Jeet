@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AppProvider, useApp } from './data/store';
 import { Navbar } from './components/Navbar';
 import { KineticScrollHero } from './components/KineticScrollHero';
@@ -21,10 +21,50 @@ import { X } from 'lucide-react';
 const MainContent: React.FC = () => {
   const {
     screen,
+    setScreen,
     isAdminOpen,
+    setIsAdminOpen,
     is3DFullscreen,
     setIs3DFullscreen
   } = useApp();
+
+  // URL hash (#admin or ?admin) and keyboard shortcut (Ctrl+Shift+A / Alt+A) handler
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      const hash = window.location.hash.toLowerCase();
+      const params = new URLSearchParams(window.location.search);
+      if (hash === '#admin' || params.get('admin') === 'true' || params.has('admin')) {
+        setIsAdminOpen(true);
+        setScreen('admin');
+      }
+    };
+
+    checkAdminRoute();
+    window.addEventListener('hashchange', checkAdminRoute);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') || (e.altKey && e.key.toLowerCase() === 'a')) {
+        e.preventDefault();
+        const next = !isAdminOpen;
+        setIsAdminOpen(next);
+        if (next) {
+          setScreen('admin');
+          window.location.hash = 'admin';
+        } else {
+          setScreen('portfolio');
+          if (window.location.hash === '#admin') {
+            window.history.pushState(null, '', window.location.pathname);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('hashchange', checkAdminRoute);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAdminOpen, setIsAdminOpen, setScreen]);
 
   // If in admin mode or admin is open, render AdminPanel directly
   if (screen === 'admin' || isAdminOpen) {

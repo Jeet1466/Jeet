@@ -153,7 +153,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newProject: Project = {
       ...projectData,
       id: `proj-${Date.now()}`,
-      updatedAt: new Date().toISOString().split('T')[0]
+      updatedAt: new Date().toISOString().split('T')[0],
+      source: projectData.source || 'manual'
     };
     setProjects(prev => [newProject, ...prev]);
   };

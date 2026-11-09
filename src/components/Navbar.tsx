@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../data/store';
-import { Menu, X, ArrowUpRight, FolderGit2 } from 'lucide-react';
+import { Menu, X, ArrowUpRight } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { setIsContactOpen, config, setIsAdminOpen, setScreen } = useApp();
+  const { setIsContactOpen, config } = useApp();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Close nav on ESC key
@@ -48,19 +48,6 @@ export const Navbar: React.FC = () => {
 
         {/* Floating Action Buttons */}
         <div className="pointer-events-auto flex items-center gap-2 sm:gap-2.5">
-          {/* Admin Panel button: direct access to GitHub Repos Manager */}
-          <button
-            onClick={() => {
-              setIsAdminOpen(true);
-              setScreen('admin');
-            }}
-            className="border border-[#dfff00]/40 hover:border-[#dfff00] bg-[#171919]/90 hover:bg-[#1f2222] text-[#dfff00] font-technical text-[11px] sm:text-[12px] py-2 sm:py-2.5 px-3 sm:px-4 rounded-sm uppercase tracking-widest font-bold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer backdrop-blur-md"
-            title="Open Projects Admin Console & GitHub Exporter"
-          >
-            <FolderGit2 className="w-3.5 h-3.5 text-[#dfff00]" />
-            <span>ADMIN</span>
-          </button>
-
           {/* Contact button */}
           <button
             onClick={() => setIsContactOpen(true)}
@@ -170,27 +157,6 @@ export const Navbar: React.FC = () => {
                     </span>
                     <span className="font-display text-[32px] sm:text-[48px] md:text-[62px] text-white uppercase font-black tracking-tight group-hover:text-[#dfff00] group-hover:translate-x-3 transition-all duration-200">
                       Kinetic Dispatch
-                    </span>
-                  </div>
-                  <ArrowUpRight className="w-6 h-6 text-white/30 group-hover:text-[#dfff00] group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
-                </button>
-              </li>
-
-              <li>
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setIsAdminOpen(true);
-                    setScreen('admin');
-                  }}
-                  className="group flex items-center justify-between w-full text-left py-2 border-b border-white/5 hover:border-[#dfff00]/40 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-baseline gap-4 sm:gap-6">
-                    <span className="font-technical text-[13px] sm:text-[15px] text-[#dfff00] font-mono">
-                      05 //
-                    </span>
-                    <span className="font-display text-[32px] sm:text-[48px] md:text-[62px] text-white uppercase font-black tracking-tight group-hover:text-[#dfff00] group-hover:translate-x-3 transition-all duration-200">
-                      GitHub Admin Console
                     </span>
                   </div>
                   <ArrowUpRight className="w-6 h-6 text-white/30 group-hover:text-[#dfff00] group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../data/store';
 import { ProjectCategory } from '../types';
-import { ExternalLink, Github, Layers, ArrowRight, ArrowLeft, FolderGit2, Star, GitFork } from 'lucide-react';
+import { ExternalLink, Github, Layers, ArrowRight, ArrowLeft, Star, GitFork } from 'lucide-react';
 import { MatrixBackground } from './MatrixBackground';
 import { GITHUB_LANGUAGE_COLORS } from './AdminPanel';
 
 export const ProjectsSection: React.FC = () => {
-  const { projects, setIsAdminOpen, setScreen } = useApp();
+  const { projects } = useApp();
   const [filter, setFilter] = useState<'ALL' | ProjectCategory>('ALL');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -104,19 +104,6 @@ export const ProjectsSection: React.FC = () => {
 
           {/* Filter Chips & Nav Controls */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Admin Console Shortcut */}
-            <button
-              onClick={() => {
-                setIsAdminOpen(true);
-                setScreen('admin');
-              }}
-              className="px-2.5 py-1.5 bg-[#171919] hover:bg-[#1f2222] text-[#dfff00] border border-[#dfff00]/40 rounded-sm font-technical text-[10px] uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Open Admin Console to select/export GitHub repos"
-            >
-              <FolderGit2 className="w-3.5 h-3.5 text-[#dfff00]" />
-              <span>Manage Repos</span>
-            </button>
-
             <div className="flex flex-wrap items-center gap-1 p-1 bg-[#161818] border border-white/10 rounded-sm">
               {(['ALL', 'Fullstack', 'AI / ML', 'Cybersecurity', 'Systems', 'Infrastructure'] as const).map(cat => (
                 <button

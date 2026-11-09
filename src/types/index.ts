@@ -32,6 +32,7 @@ export interface Project {
   topics?: string[];
   repoName?: string;
   selected?: boolean;
+  source?: 'github' | 'manual';
 }
 
 export type TopicInterest = 'All Systems' | 'AI & Architecture' | 'Kinetic UX' | 'Engineering Research';

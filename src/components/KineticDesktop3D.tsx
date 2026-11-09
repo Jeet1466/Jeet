@@ -211,115 +211,388 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     rugMesh.receiveShadow = !isSoftwareGl;
     rootGroup.add(rugMesh);
 
-    // --- B. PANORAMIC OBSERVATION SPACE WINDOW (FRONT WALL) ---
-    // User requested: "in front there should be window with distant space view. Wall should be behind."
-    // 1. Distant Cosmic Sky Canvas Backdrop (Stars, Purple/Teal Nebula, Distant Celestial Planet)
+    // --- B. DEEP 3D CELESTIAL COSMOS OUTSIDE PANORAMIC OBSERVATION WINDOW ---
+    // User requested: "In 3D Make Chair and Space outside window more realistic"
+    // Features:
+    // 1. Deep cosmic curved celestial panorama with layered multi-spectral nebulae and dust lanes (z ~ -20)
+    // 2. Volumetric 3D multi-spectral starfield point cloud (1,200+ stars distributed at z ~ -6.5 to -28)
+    // 3. True 3D Gas Giant Planet with realistic atmospheric bands, great storm vortex, and Rayleigh limb glow (at z = -14.5)
+    // 4. 3D Inclined multi-band planetary ring system with Cassini division and icy dust striations
+    // 5. Distant orbital relay habitat station with solar arrays, communication dish, and flashing collision beacons (at z = -8.5)
+
+    // 1. High-Resolution Deep Cosmic Sky Panorama
     const spaceCanvas = document.createElement('canvas');
-    spaceCanvas.width = 1024;
-    spaceCanvas.height = 512;
+    spaceCanvas.width = 2048;
+    spaceCanvas.height = 1024;
     const spCtx = spaceCanvas.getContext('2d')!;
 
-    // Deep space dark void
-    const bgGrad = spCtx.createLinearGradient(0, 0, 1024, 512);
-    bgGrad.addColorStop(0, '#020306');
-    bgGrad.addColorStop(0.5, '#04060d');
-    bgGrad.addColorStop(1, '#020308');
+    // Cosmic void base
+    const bgGrad = spCtx.createLinearGradient(0, 0, 2048, 1024);
+    bgGrad.addColorStop(0, '#020308');
+    bgGrad.addColorStop(0.3, '#040714');
+    bgGrad.addColorStop(0.65, '#020510');
+    bgGrad.addColorStop(1, '#010207');
     spCtx.fillStyle = bgGrad;
-    spCtx.fillRect(0, 0, 1024, 512);
+    spCtx.fillRect(0, 0, 2048, 1024);
 
-    // Swirling Cosmic Nebulae
-    // Purple / Magenta Nebula Cloud
-    const neb1 = spCtx.createRadialGradient(380, 220, 30, 380, 220, 260);
-    neb1.addColorStop(0, 'rgba(168, 85, 247, 0.45)');
-    neb1.addColorStop(0.4, 'rgba(126, 34, 206, 0.25)');
-    neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = neb1;
-    spCtx.fillRect(0, 0, 1024, 512);
+    // Multi-Layer Billowing Nebulae across panoramic viewport
+    // Left Zone (Framed in left window pane): Glowing Magenta/Violet Carina emission complex
+    const nebMagenta = spCtx.createRadialGradient(420, 400, 30, 420, 400, 460);
+    nebMagenta.addColorStop(0, 'rgba(217, 70, 239, 0.46)');
+    nebMagenta.addColorStop(0.35, 'rgba(147, 51, 234, 0.28)');
+    nebMagenta.addColorStop(0.7, 'rgba(76, 29, 149, 0.12)');
+    nebMagenta.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = nebMagenta;
+    spCtx.fillRect(0, 0, 2048, 1024);
 
-    // Cyan / Electric Blue Celestial Cloud
-    const neb2 = spCtx.createRadialGradient(680, 180, 20, 680, 180, 220);
-    neb2.addColorStop(0, 'rgba(6, 182, 212, 0.40)');
-    neb2.addColorStop(0.5, 'rgba(14, 116, 144, 0.20)');
-    neb2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = neb2;
-    spCtx.fillRect(0, 0, 1024, 512);
-
-    // Warm Gold Stardust Core
-    const neb3 = spCtx.createRadialGradient(500, 260, 10, 500, 260, 160);
-    neb3.addColorStop(0, 'rgba(223, 255, 0, 0.22)');
-    neb3.addColorStop(0.6, 'rgba(234, 179, 8, 0.08)');
-    neb3.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = neb3;
-    spCtx.fillRect(0, 0, 1024, 512);
-
-    // Distant Ringed Planet / Moon (Upper Right)
-    const px = 760, py = 150, pr = 48;
-    // Outer atmospheric glow
-    const pAtmo = spCtx.createRadialGradient(px, py, pr * 0.8, px, py, pr * 1.5);
-    pAtmo.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
-    pAtmo.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = pAtmo;
-    spCtx.beginPath();
-    spCtx.arc(px, py, pr * 1.5, 0, Math.PI * 2);
-    spCtx.fill();
-
-    // Planet body
-    const planetGrad = spCtx.createRadialGradient(px - 14, py - 14, 4, px, py, pr);
-    planetGrad.addColorStop(0, '#93c5fd');
-    planetGrad.addColorStop(0.4, '#1e3a8a');
-    planetGrad.addColorStop(0.85, '#0f172a');
-    planetGrad.addColorStop(1, '#020617');
-    spCtx.fillStyle = planetGrad;
-    spCtx.beginPath();
-    spCtx.arc(px, py, pr, 0, Math.PI * 2);
-    spCtx.fill();
-
-    // Planetary Rings
+    // Distant Spiral Galaxy (Andromeda-style inclined disk in left window sky)
     spCtx.save();
-    spCtx.translate(px, py);
+    spCtx.translate(340, 250);
     spCtx.rotate(-0.35);
-    spCtx.strokeStyle = 'rgba(223, 255, 0, 0.45)';
-    spCtx.lineWidth = 3;
+    // Outer galaxy spiral halo
+    const galOuter = spCtx.createRadialGradient(0, 0, 10, 0, 0, 110);
+    galOuter.addColorStop(0, 'rgba(224, 242, 254, 0.75)');
+    galOuter.addColorStop(0.35, 'rgba(56, 189, 248, 0.35)');
+    galOuter.addColorStop(0.7, 'rgba(99, 102, 241, 0.15)');
+    galOuter.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = galOuter;
     spCtx.beginPath();
-    spCtx.ellipse(0, 0, pr * 2.1, pr * 0.45, 0, 0, Math.PI * 2);
-    spCtx.stroke();
-    spCtx.strokeStyle = 'rgba(147, 197, 253, 0.35)';
-    spCtx.lineWidth = 1.5;
+    spCtx.ellipse(0, 0, 110, 34, 0, 0, Math.PI * 2);
+    spCtx.fill();
+    // Bright galactic nucleus core
+    const galCore = spCtx.createRadialGradient(0, 0, 2, 0, 0, 22);
+    galCore.addColorStop(0, '#ffffff');
+    galCore.addColorStop(0.4, 'rgba(254, 240, 138, 0.85)');
+    galCore.addColorStop(1, 'rgba(234, 179, 8, 0)');
+    spCtx.fillStyle = galCore;
     spCtx.beginPath();
-    spCtx.ellipse(0, 0, pr * 2.35, pr * 0.52, 0, 0, Math.PI * 2);
-    spCtx.stroke();
+    spCtx.ellipse(0, 0, 22, 10, 0, 0, Math.PI * 2);
+    spCtx.fill();
     spCtx.restore();
 
-    // Dense Multitude of Stars
-    for (let s = 0; s < 320; s++) {
-      const sx = (Math.sin(s * 1337.7) * 0.5 + 0.5) * 1024;
-      const sy = (Math.cos(s * 911.3) * 0.5 + 0.5) * 512;
-      const sr = (s % 7 === 0) ? 2.2 : (s % 3 === 0 ? 1.5 : 0.9);
-      const alpha = 0.4 + (s % 5) * 0.15;
-      spCtx.fillStyle = (s % 6 === 0) ? `rgba(223, 255, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`;
+    // Center-Right Zone: Luminous Cyan & Turquoise Ionization Cloud
+    const nebCyan = spCtx.createRadialGradient(1350, 360, 40, 1350, 360, 520);
+    nebCyan.addColorStop(0, 'rgba(6, 182, 212, 0.44)');
+    nebCyan.addColorStop(0.4, 'rgba(14, 116, 144, 0.26)');
+    nebCyan.addColorStop(0.75, 'rgba(8, 47, 73, 0.10)');
+    nebCyan.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = nebCyan;
+    spCtx.fillRect(0, 0, 2048, 1024);
+
+    // Warm Gold Stellar Nursery Filaments & Ionized Gas
+    const nebGold = spCtx.createRadialGradient(1020, 480, 20, 1020, 480, 380);
+    nebGold.addColorStop(0, 'rgba(234, 179, 8, 0.30)');
+    nebGold.addColorStop(0.45, 'rgba(223, 255, 0, 0.14)');
+    nebGold.addColorStop(0.8, 'rgba(161, 98, 7, 0.04)');
+    nebGold.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    spCtx.fillStyle = nebGold;
+    spCtx.fillRect(0, 0, 2048, 1024);
+
+    // Interstellar Dark Dust Absorption Lanes (Eagle Nebula "Pillars")
+    spCtx.strokeStyle = 'rgba(2, 4, 8, 0.62)';
+    spCtx.lineWidth = 26;
+    spCtx.filter = 'blur(10px)';
+    spCtx.beginPath();
+    spCtx.moveTo(280, 460);
+    spCtx.bezierCurveTo(550, 380, 750, 450, 1100, 360);
+    spCtx.stroke();
+    spCtx.beginPath();
+    spCtx.moveTo(700, 560);
+    spCtx.bezierCurveTo(950, 460, 1280, 420, 1680, 310);
+    spCtx.stroke();
+    spCtx.filter = 'none';
+
+    // Dense Field of 850 Distant Micro-Stars baked into backdrop
+    for (let s = 0; s < 850; s++) {
+      const sx = (Math.sin(s * 1537.7) * 0.5 + 0.5) * 2048;
+      const sy = (Math.cos(s * 821.3) * 0.5 + 0.5) * 1024;
+      const sr = (s % 13 === 0) ? 2.4 : (s % 4 === 0 ? 1.5 : 0.8);
+      const alpha = 0.35 + (s % 7) * 0.10;
+      spCtx.fillStyle = (s % 9 === 0) ? `rgba(223, 255, 0, ${alpha})` :
+                        (s % 5 === 0) ? `rgba(147, 197, 253, ${alpha})` :
+                        (s % 7 === 0) ? `rgba(244, 114, 182, ${alpha})` :
+                        `rgba(255, 255, 255, ${alpha})`;
       spCtx.beginPath();
       spCtx.arc(sx, sy, sr, 0, Math.PI * 2);
       spCtx.fill();
 
-      // Diffraction cross-spikes on major bright stars
-      if (s % 17 === 0) {
-        spCtx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.7})`;
+      // Optical diffraction spikes on bright primary stars
+      if (s % 27 === 0) {
+        spCtx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.75})`;
         spCtx.lineWidth = 1;
         spCtx.beginPath();
-        spCtx.moveTo(sx - 8, sy); spCtx.lineTo(sx + 8, sy);
-        spCtx.moveTo(sx, sy - 8); spCtx.lineTo(sx, sy + 8);
+        spCtx.moveTo(sx - 10, sy); spCtx.lineTo(sx + 10, sy);
+        spCtx.moveTo(sx, sy - 10); spCtx.lineTo(sx, sy + 10);
         spCtx.stroke();
       }
     }
 
     const spaceTexture = new THREE.CanvasTexture(spaceCanvas);
     spaceTexture.colorSpace = THREE.SRGBColorSpace;
+
+    // Curved panoramic celestial backdrop (parabolic curved wrap)
+    const cosmicGeo = new THREE.PlaneGeometry(42, 24, 32, 1);
+    const cPos = cosmicGeo.attributes.position;
+    for (let i = 0; i < cPos.count; i++) {
+      const x = cPos.getX(i);
+      cPos.setZ(i, -(x * x) * 0.014);
+    }
+    cosmicGeo.computeVertexNormals();
+
     const spaceMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(12.0, 6.2),
-      new THREE.MeshBasicMaterial({ map: spaceTexture })
+      cosmicGeo,
+      new THREE.MeshBasicMaterial({ map: spaceTexture, side: THREE.DoubleSide, fog: false })
     );
-    spaceMesh.position.set(0, 2.3, -3.95);
+    spaceMesh.position.set(0, 3.2, -20.0);
     rootGroup.add(spaceMesh);
+
+    // 2. Volumetric 3D Multi-Magnitude Starfield (True 3D Points Cloud)
+    const starCount = 1200;
+    const starGeo = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    const starColors = new Float32Array(starCount * 3);
+
+    for (let i = 0; i < starCount; i++) {
+      starPositions[i * 3] = (Math.random() - 0.5) * 44;
+      starPositions[i * 3 + 1] = -4 + Math.random() * 20;
+      starPositions[i * 3 + 2] = -6.5 - Math.random() * 20;
+
+      const starType = i % 10;
+      if (starType <= 2) {
+        starColors[i * 3] = 0.72; starColors[i * 3 + 1] = 0.85; starColors[i * 3 + 2] = 1.0;
+      } else if (starType <= 5) {
+        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 1.0; starColors[i * 3 + 2] = 1.0;
+      } else if (starType <= 7) {
+        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.94; starColors[i * 3 + 2] = 0.70;
+      } else if (starType <= 8) {
+        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.68; starColors[i * 3 + 2] = 0.45;
+      } else {
+        starColors[i * 3] = 0.87; starColors[i * 3 + 1] = 1.0; starColors[i * 3 + 2] = 0.0;
+      }
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+
+    const starField = new THREE.Points(
+      starGeo,
+      new THREE.PointsMaterial({
+        size: 0.08,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.92,
+        fog: false
+      })
+    );
+    rootGroup.add(starField);
+
+    // 3. True 3D Gas Giant Planet with Fluid Dynamic Atmospheric Bands & Storms
+    const planetGroup = new THREE.Group();
+    // Positioned in upper center-right window opening
+    planetGroup.position.set(0.85, 2.42, -8.4);
+    rootGroup.add(planetGroup);
+
+    // High-Resolution Atmospheric Canvas Texture (1024x512)
+    const planetCanvas = document.createElement('canvas');
+    planetCanvas.width = 1024;
+    planetCanvas.height = 512;
+    const plCtx = planetCanvas.getContext('2d')!;
+
+    // Zonal jet streams and turbulent Jovian/Neptunian cloud decks
+    const bandColors = [
+      '#051527', '#0a2340', '#0284c7', '#38bdf8', '#0284c7',
+      '#071a33', '#1e3a8a', '#60a5fa', '#0c4a6e', '#38bdf8',
+      '#0f2b48', '#0369a1', '#7dd3fc', '#0b2038', '#03172c'
+    ];
+    for (let b = 0; b < bandColors.length; b++) {
+      const y = (b / bandColors.length) * 512;
+      const h = 512 / bandColors.length + 3;
+      plCtx.fillStyle = bandColors[b];
+      plCtx.beginPath();
+      plCtx.moveTo(0, y);
+      for (let x = 0; x <= 1024; x += 32) {
+        const wave = Math.sin(x * 0.024 + b * 1.8) * 5.0 + Math.cos(x * 0.05 + b) * 2.5;
+        plCtx.lineTo(x, y + wave);
+      }
+      plCtx.lineTo(1024, y + h);
+      plCtx.lineTo(0, y + h);
+      plCtx.closePath();
+      plCtx.fill();
+    }
+
+    // Atmospheric swirling eddy plumes & storm filaments
+    for (let c = 0; c < 45; c++) {
+      const cy = Math.random() * 512;
+      const cx = Math.random() * 1024;
+      const cw = 110 + Math.random() * 240;
+      const ch = 4 + Math.random() * 12;
+      plCtx.fillStyle = (c % 3 === 0) ? 'rgba(224, 242, 254, 0.28)' :
+                        (c % 2 === 0) ? 'rgba(14, 165, 233, 0.25)' :
+                        'rgba(3, 105, 161, 0.32)';
+      plCtx.beginPath();
+      plCtx.ellipse(cx, cy, cw / 2, ch / 2, Math.sin(cx * 0.01) * 0.1, 0, Math.PI * 2);
+      plCtx.fill();
+    }
+
+    // Great Cyclonic Vortex Storm with spiral eyewall
+    const stormX = 430, stormY = 295;
+    const stormGrad = plCtx.createRadialGradient(stormX, stormY, 4, stormX, stormY, 46);
+    stormGrad.addColorStop(0, '#f8fafc');
+    stormGrad.addColorStop(0.28, '#7dd3fc');
+    stormGrad.addColorStop(0.65, '#0284c7');
+    stormGrad.addColorStop(1, 'rgba(2, 132, 199, 0)');
+    plCtx.fillStyle = stormGrad;
+    plCtx.beginPath();
+    plCtx.ellipse(stormX, stormY, 46, 24, -0.12, 0, Math.PI * 2);
+    plCtx.fill();
+
+    // Planet Day/Night Terminator Shading (Directional Solar Lighting)
+    const termGrad = plCtx.createLinearGradient(0, 0, 1024, 0);
+    termGrad.addColorStop(0, 'rgba(255, 255, 255, 0.20)');
+    termGrad.addColorStop(0.52, 'rgba(0, 0, 0, 0)');
+    termGrad.addColorStop(0.82, 'rgba(0, 0, 0, 0.68)');
+    termGrad.addColorStop(1, 'rgba(0, 0, 0, 0.92)');
+    plCtx.fillStyle = termGrad;
+    plCtx.fillRect(0, 0, 1024, 512);
+
+    // Planetary Ring Shadow across upper cloud deck
+    const shadowGrad = plCtx.createLinearGradient(0, 140, 0, 210);
+    shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    shadowGrad.addColorStop(0.35, 'rgba(0, 4, 12, 0.70)');
+    shadowGrad.addColorStop(0.85, 'rgba(0, 4, 12, 0.70)');
+    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    plCtx.fillStyle = shadowGrad;
+    plCtx.fillRect(0, 140, 1024, 70);
+
+    const planetTexture = new THREE.CanvasTexture(planetCanvas);
+    planetTexture.colorSpace = THREE.SRGBColorSpace;
+
+    const planetMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(2.15, 64, 64),
+      new THREE.MeshBasicMaterial({ map: planetTexture, fog: false })
+    );
+    planetMesh.rotation.y = -0.55;
+    planetGroup.add(planetMesh);
+
+    // Rayleigh Scattering Ethereal Atmospheric Limb Glow Shell
+    const atmoGlow = new THREE.Mesh(
+      new THREE.SphereGeometry(2.26, 32, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.44,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        fog: false
+      })
+    );
+    planetGroup.add(atmoGlow);
+
+    // 4. Authentic Concentric Multi-Band Planetary Rings (512x512 Radial Canvas)
+    const ringCanvas = document.createElement('canvas');
+    ringCanvas.width = 512;
+    ringCanvas.height = 512;
+    const rCtx = ringCanvas.getContext('2d')!;
+    const cxR = 256, cyR = 256;
+
+    // Inner radius = 2.6 / 4.8 * 256 = 138.6px
+    // Outer radius = 256px
+    // Radial Gradient representing A, B, C Rings and Cassini Division
+    const rGrad = rCtx.createRadialGradient(cxR, cyR, 138, cxR, cyR, 256);
+    rGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    rGrad.addColorStop(0.04, 'rgba(56, 189, 248, 0.35)'); // Inner Crepe Ring C
+    rGrad.addColorStop(0.18, 'rgba(147, 197, 253, 0.78)'); // Dense B-Ring Start
+    rGrad.addColorStop(0.38, 'rgba(224, 242, 254, 0.90)'); // Bright B-Ring Core
+    rGrad.addColorStop(0.52, 'rgba(186, 230, 253, 0.82)');
+    // Cassini Division Gap (Sharp dark gap)
+    rGrad.addColorStop(0.56, 'rgba(1, 2, 6, 0.06)');
+    rGrad.addColorStop(0.62, 'rgba(1, 2, 6, 0.06)');
+    // Outer A-Ring
+    rGrad.addColorStop(0.66, 'rgba(125, 211, 252, 0.72)');
+    rGrad.addColorStop(0.82, 'rgba(186, 230, 253, 0.65)');
+    rGrad.addColorStop(0.85, 'rgba(1, 2, 6, 0.15)'); // Encke Division slit
+    rGrad.addColorStop(0.88, 'rgba(125, 211, 252, 0.60)');
+    rGrad.addColorStop(0.96, 'rgba(56, 189, 248, 0.35)'); // F-Ring edge
+    rGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    rCtx.fillStyle = rGrad;
+    rCtx.beginPath();
+    rCtx.arc(cxR, cyR, 256, 0, Math.PI * 2);
+    rCtx.fill();
+
+    // Concentric hairline micro-ringlet striations for high-fidelity realism
+    for (let ri = 0; ri < 30; ri++) {
+      const radius = 142 + ri * 3.6;
+      if (radius >= 198 && radius <= 208) continue; // Skip Cassini gap
+      rCtx.strokeStyle = (ri % 2 === 0) ? 'rgba(255, 255, 255, 0.14)' : 'rgba(10, 30, 60, 0.18)';
+      rCtx.lineWidth = 1;
+      rCtx.beginPath();
+      rCtx.arc(cxR, cyR, radius, 0, Math.PI * 2);
+      rCtx.stroke();
+    }
+
+    const ringTexture = new THREE.CanvasTexture(ringCanvas);
+    ringTexture.colorSpace = THREE.SRGBColorSpace;
+
+    const ringMesh = new THREE.Mesh(
+      new THREE.RingGeometry(2.6, 4.8, 128),
+      new THREE.MeshBasicMaterial({
+        map: ringTexture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.92,
+        fog: false
+      })
+    );
+    ringMesh.rotation.x = Math.PI / 2 + 0.34;
+    ringMesh.rotation.y = -0.24;
+    planetGroup.add(ringMesh);
+
+    // 5. Distant Orbital Relay Station / Deep Space Habitat (In Left Window Pane)
+    const stationGroup = new THREE.Group();
+    stationGroup.position.set(-1.75, 2.45, -5.8);
+    rootGroup.add(stationGroup);
+
+    const stationMat = new THREE.MeshStandardMaterial({ color: 0xc4d1db, roughness: 0.3, metalness: 0.85 });
+    const solarMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.2, metalness: 0.9 });
+    const beaconRedMat = new THREE.MeshBasicMaterial({ color: 0xff3b30, fog: false });
+    const beaconCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, fog: false });
+
+    // Pressurized titanium central hull cylinder
+    const stCore = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.65, 16), stationMat);
+    stationGroup.add(stCore);
+
+    // Centrifugal habitat ring torus
+    const stRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.022, 12, 24), stationMat);
+    stRing.rotation.x = Math.PI / 2;
+    stationGroup.add(stRing);
+
+    // Solar array cross truss
+    const stTruss = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.02, 0.02), stationMat);
+    stationGroup.add(stTruss);
+
+    // Twin High-Efficiency Photovoltaic Solar Panels
+    const solarL = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.010, 0.26), solarMat);
+    solarL.position.set(-0.52, 0, 0);
+    stationGroup.add(solarL);
+
+    const solarR = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.010, 0.26), solarMat);
+    solarR.position.set(0.52, 0, 0);
+    stationGroup.add(solarR);
+
+    // Parabolic Deep Space Communications Dish
+    const stDish = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.07, 16, 1, true), stationMat);
+    stDish.position.set(0, 0.38, 0.05);
+    stDish.rotation.x = 0.5;
+    stDish.rotation.y = 0.8;
+    stationGroup.add(stDish);
+
+    // Port & Starboard Blinking Navigational Collision Strobe Beacons
+    const beaconL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), beaconRedMat);
+    beaconL.position.set(-0.80, 0, 0);
+    stationGroup.add(beaconL);
+
+    const beaconR = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), beaconCyanMat);
+    beaconR.position.set(0.80, 0, 0);
+    stationGroup.add(beaconR);
 
     // 2. Front Architectural Window Enclosure & Mullions
     const wallMat = new THREE.MeshStandardMaterial({ color: 0x161819, roughness: 0.85, metalness: 0.1 });
@@ -381,19 +654,94 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     mullion2.position.set(1.0, 2.2, -3.18);
     rootGroup.add(mullion2);
 
-    // Clear Panoramic Aerospace Glass Pane
+    // Clear Panoramic Aerospace Glass Pane with Optical Anti-Reflective Sheen
     const spaceGlass = new THREE.Mesh(
       new THREE.PlaneGeometry(5.5, 3.5),
       new THREE.MeshStandardMaterial({
-        color: 0x0a141e,
+        color: 0x05101a,
         transparent: true,
-        opacity: 0.12,
-        roughness: 0.05,
-        metalness: 0.3
+        opacity: 0.14,
+        roughness: 0.04,
+        metalness: 0.4
       })
     );
     spaceGlass.position.set(0, 2.2, -3.2);
     rootGroup.add(spaceGlass);
+
+    // High-Tech Etched Holographic HUD Telemetry Reticle on Glass
+    const hudCanvas = document.createElement('canvas');
+    hudCanvas.width = 1024;
+    hudCanvas.height = 512;
+    const hctx = hudCanvas.getContext('2d')!;
+    hctx.clearRect(0, 0, 1024, 512);
+
+    // Faint celestial compass azimuth bar at top
+    hctx.strokeStyle = 'rgba(6, 182, 212, 0.35)';
+    hctx.lineWidth = 1.5;
+    hctx.beginPath();
+    hctx.moveTo(180, 48); hctx.lineTo(844, 48);
+    hctx.stroke();
+
+    hctx.font = '10px "JetBrains Mono", monospace';
+    hctx.fillStyle = 'rgba(6, 182, 212, 0.55)';
+    hctx.textAlign = 'center';
+    for (let deg = 100; deg <= 160; deg += 10) {
+      const hx = 180 + ((deg - 100) / 60) * 664;
+      hctx.beginPath();
+      hctx.moveTo(hx, 42); hctx.lineTo(hx, 54);
+      hctx.stroke();
+      hctx.fillText(`${deg}°`, hx, 36);
+    }
+    hctx.fillStyle = 'rgba(223, 255, 0, 0.65)';
+    hctx.fillText('[ HDG 132° // ELEV +14.2° ]', 512, 68);
+
+    // Horizon pitch ladder
+    hctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
+    hctx.beginPath();
+    hctx.moveTo(432, 256); hctx.lineTo(482, 256);
+    hctx.moveTo(542, 256); hctx.lineTo(592, 256);
+    hctx.moveTo(512, 246); hctx.lineTo(512, 266);
+    hctx.stroke();
+
+    // Planet Lock Reticle (Targeting Kepler Exoplanet)
+    hctx.strokeStyle = 'rgba(223, 255, 0, 0.45)';
+    hctx.lineWidth = 1.5;
+    hctx.strokeRect(500, 110, 140, 85);
+    hctx.beginPath();
+    hctx.moveTo(490, 152); hctx.lineTo(500, 152);
+    hctx.moveTo(640, 152); hctx.lineTo(650, 152);
+    hctx.moveTo(570, 100); hctx.lineTo(570, 110);
+    hctx.moveTo(570, 195); hctx.lineTo(570, 205);
+    hctx.stroke();
+    hctx.font = '9px "JetBrains Mono", monospace';
+    hctx.fillStyle = 'rgba(223, 255, 0, 0.65)';
+    hctx.textAlign = 'left';
+    hctx.fillText('TARGET: EXOPLANET-452', 504, 126);
+    hctx.fillStyle = 'rgba(147, 197, 253, 0.55)';
+    hctx.fillText('RANGE: 4.8 AU', 504, 142);
+    hctx.fillText('ATM: N2-CH4-H2O', 504, 158);
+    hctx.fillText('CLASS: GAS GIANT', 504, 174);
+
+    // Orbital Station Telemetry HUD in lower-left
+    hctx.fillStyle = 'rgba(6, 182, 212, 0.50)';
+    hctx.fillText('ORBITAL STATUS: GEO-SYNCHRONOUS', 80, 440);
+    hctx.fillText('ALT: 418.4 KM // VEL: 7.68 KM/S', 80, 456);
+    hctx.fillText('HULL INTEGRITY: 100% // RAD: 0.12 μSv', 80, 472);
+
+    const hudTexture = new THREE.CanvasTexture(hudCanvas);
+    hudTexture.colorSpace = THREE.SRGBColorSpace;
+    const hudMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.48, 3.48),
+      new THREE.MeshBasicMaterial({
+        map: hudTexture,
+        transparent: true,
+        opacity: 0.72,
+        blending: THREE.AdditiveBlending,
+        fog: false
+      })
+    );
+    hudMesh.position.set(0, 2.2, -3.19);
+    rootGroup.add(hudMesh);
 
     // Sleek Station ID Sign above Window Header
     const signCanvas = document.createElement('canvas');
@@ -1259,60 +1607,400 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       deskGroup.add(leaf);
     }
 
-    // --- N. ERGONOMIC MESH CHAIR ---
+    // --- N. REALISTIC HIGH-END ERGONOMIC TASK CHAIR ---
+    // User requested: "In 3D Make Chair and Space outside window more realistic"
     const chairGroup = new THREE.Group();
     rootGroup.add(chairGroup);
-    chairGroup.position.set(0, 0, 0.52);
+    chairGroup.position.set(0, 0, 0.50);
+    chairGroup.rotation.y = 0.22;
 
-    const spineMat = new THREE.MeshStandardMaterial({ color: 0x121415, roughness: 0.35, metalness: 0.85 });
-    const cMeshMat = new THREE.MeshStandardMaterial({ color: 0x1f2324, roughness: 0.7, metalness: 0.2 });
+    // Procedural High-Tensile Breathable Woven Mesh Texture
+    const chairMeshCanvas = document.createElement('canvas');
+    chairMeshCanvas.width = 128;
+    chairMeshCanvas.height = 128;
+    const meshCtx = chairMeshCanvas.getContext('2d')!;
+    meshCtx.fillStyle = '#141618';
+    meshCtx.fillRect(0, 0, 128, 128);
+    meshCtx.fillStyle = '#1e2225';
+    for (let my = 0; my < 128; my += 8) {
+      for (let mx = 0; mx < 128; mx += 8) {
+        if ((mx / 8 + my / 8) % 2 === 0) {
+          meshCtx.fillRect(mx + 1, my + 1, 6, 6);
+        }
+      }
+    }
+    meshCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    meshCtx.lineWidth = 1;
+    for (let mi = 0; mi <= 128; mi += 8) {
+      meshCtx.beginPath(); meshCtx.moveTo(mi, 0); meshCtx.lineTo(mi, 128); meshCtx.stroke();
+      meshCtx.beginPath(); meshCtx.moveTo(0, mi); meshCtx.lineTo(128, mi); meshCtx.stroke();
+    }
+    const meshTexture = new THREE.CanvasTexture(chairMeshCanvas);
+    meshTexture.wrapS = THREE.RepeatWrapping;
+    meshTexture.wrapT = THREE.RepeatWrapping;
+    meshTexture.repeat.set(6, 6);
+    meshTexture.colorSpace = THREE.SRGBColorSpace;
 
-    const starBase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.05, 16), spineMat);
-    starBase.position.set(0, 0.08, 0);
-    chairGroup.add(starBase);
+    // Contact Ground Shadow Disk (Anchors chair visually to the floor/rug)
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = 256;
+    shadowCanvas.height = 256;
+    const shCtx = shadowCanvas.getContext('2d')!;
+    const shGrad = shCtx.createRadialGradient(128, 128, 15, 128, 128, 120);
+    shGrad.addColorStop(0, 'rgba(0, 0, 0, 0.58)');
+    shGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.22)');
+    shGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    shCtx.fillStyle = shGrad;
+    shCtx.fillRect(0, 0, 256, 256);
+    const shadowTexture = new THREE.CanvasTexture(shadowCanvas);
+
+    const chairShadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.2, 1.2),
+      new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, opacity: 0.85 })
+    );
+    chairShadow.rotation.x = -Math.PI / 2;
+    chairShadow.position.set(0, 0.005, 0);
+    chairGroup.add(chairShadow);
+
+    // Advanced PBR Materials with high architectural definition
+    const chairBaseMat = new THREE.MeshStandardMaterial({ color: 0x444b50, roughness: 0.22, metalness: 0.92 });
+    const chairChromeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.05, metalness: 0.98 });
+    const chairFrameMat = new THREE.MeshStandardMaterial({ color: 0x181a1c, roughness: 0.48, metalness: 0.32 });
+    const chairSoftMat = new THREE.MeshStandardMaterial({ color: 0x22262a, roughness: 0.85, metalness: 0.05 });
+    const chairMeshMat = new THREE.MeshStandardMaterial({
+      map: meshTexture,
+      color: 0x24282c,
+      roughness: 0.55,
+      metalness: 0.22
+    });
+    const chairAccentMat = new THREE.MeshStandardMaterial({
+      color: 0xdfff00,
+      emissive: 0xdfff00,
+      emissiveIntensity: 0.45,
+      roughness: 0.2
+    });
+
+    // 1. Five-Star Arched Die-Cast Aluminum Base & Dual-Wheel Casters
+    const baseHub = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.072, 0.055, 24), chairBaseMat);
+    baseHub.position.set(0, 0.088, 0);
+    chairGroup.add(baseHub);
+
+    const baseCap = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.062, 0.015, 24), chairChromeMat);
+    baseCap.position.set(0, 0.118, 0);
+    chairGroup.add(baseCap);
+
     for (let i = 0; i < 5; i++) {
       const angle = (i / 5) * Math.PI * 2;
-      const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.025, 0.28), spineMat);
-      spoke.position.set(Math.sin(angle) * 0.14, 0.07, Math.cos(angle) * 0.14);
-      spoke.rotation.y = angle;
-      chairGroup.add(spoke);
-      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.02, 12), spineMat);
-      wheel.rotation.z = Math.PI / 2;
-      wheel.position.set(Math.sin(angle) * 0.27, 0.03, Math.cos(angle) * 0.27);
-      chairGroup.add(wheel);
+
+      // Sculpted Arched Spider Leg (tapered die-cast profile)
+      const legGroup = new THREE.Group();
+      legGroup.rotation.y = angle;
+      chairGroup.add(legGroup);
+
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.024, 0.29), chairBaseMat);
+      leg.position.set(0, 0.078, 0.155);
+      leg.rotation.x = -0.06; // Downward rake towards caster
+      legGroup.add(leg);
+
+      // Polished top spine rib
+      const legRib = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.006, 0.26), chairChromeMat);
+      legRib.position.set(0, 0.092, 0.155);
+      legRib.rotation.x = -0.06;
+      legGroup.add(legRib);
+
+      // Caster Vertical Socket Sleeve
+      const socket = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.038, 12), chairFrameMat);
+      socket.position.set(0, 0.054, 0.295);
+      legGroup.add(socket);
+
+      // Dual-Wheel Hooded Caster Assembly
+      const casterGroup = new THREE.Group();
+      casterGroup.position.set(0, 0.032, 0.295);
+      legGroup.add(casterGroup);
+
+      // Wheel hood / fork
+      const hood = new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.024, 0.028), chairFrameMat);
+      hood.position.set(0, 0.012, 0);
+      casterGroup.add(hood);
+
+      // Left and Right Dual Polyurethane Wheels
+      const wheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.012, 16), chairFrameMat);
+      wheelL.rotation.z = Math.PI / 2;
+      wheelL.position.set(-0.014, 0, 0);
+      casterGroup.add(wheelL);
+
+      const wheelR = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.012, 16), chairFrameMat);
+      wheelR.rotation.z = Math.PI / 2;
+      wheelR.position.set(0.014, 0, 0);
+      casterGroup.add(wheelR);
+
+      // Chrome Axle Pin Hub
+      const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.044, 12), chairChromeMat);
+      axle.rotation.z = Math.PI / 2;
+      casterGroup.add(axle);
     }
 
-    const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.028, 0.45, 16), spineMat);
-    cylinder.position.set(0, 0.3, 0);
-    chairGroup.add(cylinder);
+    // 2. Telescoping Hydraulic Gas Lift Piston
+    const lowerPiston = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.036, 0.22, 20), chairFrameMat);
+    lowerPiston.position.set(0, 0.21, 0);
+    chairGroup.add(lowerPiston);
 
-    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.48), cMeshMat);
-    seat.position.set(0, 0.54, 0);
-    chairGroup.add(seat);
+    const upperPiston = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.24, 20), chairChromeMat);
+    upperPiston.position.set(0, 0.36, 0);
+    chairGroup.add(upperPiston);
 
-    const back = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.62, 0.05), cMeshMat);
-    back.position.set(0, 0.92, 0.24);
-    back.rotation.x = -0.1;
-    chairGroup.add(back);
+    const pistonCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.025, 20), chairBaseMat);
+    pistonCollar.position.set(0, 0.32, 0);
+    chairGroup.add(pistonCollar);
 
-    const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.14, 0.06), cMeshMat);
-    headrest.position.set(0, 1.32, 0.32);
-    chairGroup.add(headrest);
+    // 3. Heavy-Duty Synchro-Tilt Mechanism & Under-Seat Chassis
+    const tiltChassis = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.08, 0.26), chairFrameMat);
+    tiltChassis.position.set(0, 0.45, 0.02);
+    chairGroup.add(tiltChassis);
 
-    // Armrests
-    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.22, 12), spineMat);
-    armL.position.set(-0.29, 0.66, 0.06);
-    chairGroup.add(armL);
-    const armPadL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.025, 0.22), cMeshMat);
-    armPadL.position.set(-0.29, 0.77, 0.06);
+    // Forward tilt tension knob (knurled cylinder)
+    const tensionKnob = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.07, 16), chairBaseMat);
+    tensionKnob.position.set(0, 0.42, -0.11);
+    tensionKnob.rotation.x = 0.4;
+    chairGroup.add(tensionKnob);
+
+    // Right height adjustment paddle lever
+    const leverStemR = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.16, 12), chairChromeMat);
+    leverStemR.rotation.z = Math.PI / 2;
+    leverStemR.position.set(0.18, 0.44, 0.04);
+    chairGroup.add(leverStemR);
+
+    const leverPaddleR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.012, 0.07), chairFrameMat);
+    leverPaddleR.position.set(0.26, 0.44, 0.04);
+    chairGroup.add(leverPaddleR);
+
+    // Left recline limiter lever
+    const leverStemL = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.14, 12), chairChromeMat);
+    leverStemL.rotation.z = Math.PI / 2;
+    leverStemL.position.set(-0.17, 0.44, 0.04);
+    chairGroup.add(leverStemL);
+
+    const leverPaddleL = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.012, 0.06), chairFrameMat);
+    leverPaddleL.position.set(-0.24, 0.44, 0.04);
+    chairGroup.add(leverPaddleL);
+
+    // 4. Ergonomic Waterfall Contoured Seat Pan
+    // Structural Perimeter Bezel Frame
+    const seatFrameRear = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.048, 0.06), chairFrameMat);
+    seatFrameRear.position.set(0, 0.525, 0.18);
+    chairGroup.add(seatFrameRear);
+
+    const seatFrameL = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.052, 0.40), chairFrameMat);
+    seatFrameL.position.set(-0.23, 0.525, -0.01);
+    chairGroup.add(seatFrameL);
+
+    const seatFrameR = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.052, 0.40), chairFrameMat);
+    seatFrameR.position.set(0.23, 0.525, -0.01);
+    chairGroup.add(seatFrameR);
+
+    // Pressure-relieving front waterfall roll (rounded forward drop)
+    const seatWaterfall = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.44, 24), chairFrameMat);
+    seatWaterfall.rotation.z = Math.PI / 2;
+    seatWaterfall.position.set(0, 0.505, -0.22);
+    chairGroup.add(seatWaterfall);
+
+    // Breathable Tensile Woven Mesh Seat Pan (contoured saddle dish)
+    const seatMeshPan = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.026, 0.38), chairMeshMat);
+    seatMeshPan.position.set(0, 0.526, -0.01);
+    chairGroup.add(seatMeshPan);
+
+    // 5. Ergonomic S-Curved Breathable Mesh Backrest Frame
+    // Contoured Composite Perimeter Loop Frame (Anatomical S-Curve Profile)
+    const backStileL = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.58, 16), chairFrameMat);
+    backStileL.position.set(-0.21, 0.94, 0.175);
+    backStileL.rotation.x = -0.11;
+    chairGroup.add(backStileL);
+
+    const backStileR = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.58, 16), chairFrameMat);
+    backStileR.position.set(0.21, 0.94, 0.175);
+    backStileR.rotation.x = -0.11;
+    chairGroup.add(backStileR);
+
+    // Contoured Thoracic Shoulder Frame Arch
+    const backTopArch = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.42, 16), chairFrameMat);
+    backTopArch.rotation.z = Math.PI / 2;
+    backTopArch.position.set(0, 1.22, 0.208);
+    chairGroup.add(backTopArch);
+
+    // Sacral Base Crossbar
+    const backBottomBar = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.42, 16), chairFrameMat);
+    backBottomBar.rotation.z = Math.PI / 2;
+    backBottomBar.position.set(0, 0.67, 0.145);
+    chairGroup.add(backBottomBar);
+
+    // Translucent High-Tensile Breathable Pellicle Mesh Membrane
+    const backMeshPanel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.39, 0.54, 0.014),
+      new THREE.MeshStandardMaterial({
+        map: meshTexture,
+        color: 0x24282c,
+        roughness: 0.50,
+        metalness: 0.25,
+        transparent: true,
+        opacity: 0.88,
+        depthWrite: true
+      })
+    );
+    backMeshPanel.position.set(0, 0.94, 0.175);
+    backMeshPanel.rotation.x = -0.11;
+    chairGroup.add(backMeshPanel);
+
+    // 6. Biomorphic Wishbone Exoskeleton Spine (Engineered Arch Backbone)
+    // Central Lumbo-Sacral Vertebra Trunk
+    const spineTrunk = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.32, 0.042), chairBaseMat);
+    spineTrunk.position.set(0, 0.65, 0.205);
+    spineTrunk.rotation.x = -0.11;
+    chairGroup.add(spineTrunk);
+
+    // Neon Chartreuse Architectural Pinstripe on Vertebra
+    const spineStripe = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.30, 0.008), chairAccentMat);
+    spineStripe.position.set(0, 0.65, 0.228);
+    spineStripe.rotation.x = -0.11;
+    chairGroup.add(spineStripe);
+
+    // Structural Wishbone Center Yoke
+    const wishboneYoke = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.025, 0.045, 16), chairChromeMat);
+    wishboneYoke.position.set(0, 0.78, 0.22);
+    chairGroup.add(wishboneYoke);
+
+    // Contoured Wishbone Support Arms that seamlessly cradle the back frame
+    const wishboneL = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.016, 0.31, 16), chairFrameMat);
+    wishboneL.position.set(-0.095, 0.90, 0.215);
+    wishboneL.rotation.z = -0.66;
+    wishboneL.rotation.x = -0.11;
+    chairGroup.add(wishboneL);
+
+    const wishboneJointL = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 12), chairChromeMat);
+    wishboneJointL.position.set(-0.19, 1.02, 0.21);
+    chairGroup.add(wishboneJointL);
+
+    const wishboneR = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.016, 0.31, 16), chairFrameMat);
+    wishboneR.position.set(0.095, 0.90, 0.215);
+    wishboneR.rotation.z = 0.66;
+    wishboneR.rotation.x = -0.11;
+    chairGroup.add(wishboneR);
+
+    const wishboneJointR = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 12), chairChromeMat);
+    wishboneJointR.position.set(0.19, 1.02, 0.21);
+    chairGroup.add(wishboneJointR);
+
+    // 7. Dynamic PostureFit Dual-Wing Lumbar Support Cradle
+    const lumbarBridge = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.024, 0.020), chairFrameMat);
+    lumbarBridge.position.set(0, 0.80, 0.20);
+    chairGroup.add(lumbarBridge);
+
+    // Anatomically Contoured Butterfly Lumbar Wings
+    const lumbarPadL = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.088, 0.022), chairSoftMat);
+    lumbarPadL.position.set(-0.095, 0.80, 0.195);
+    lumbarPadL.rotation.y = 0.16;
+    chairGroup.add(lumbarPadL);
+
+    const lumbarPadR = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.088, 0.022), chairSoftMat);
+    lumbarPadR.position.set(0.095, 0.80, 0.195);
+    lumbarPadR.rotation.y = -0.16;
+    chairGroup.add(lumbarPadR);
+
+    // Polished Aluminum Knurled Depth Adjustment Dials
+    const lumbarDialL = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.024, 16), chairChromeMat);
+    lumbarDialL.rotation.z = Math.PI / 2;
+    lumbarDialL.position.set(-0.175, 0.80, 0.20);
+    chairGroup.add(lumbarDialL);
+
+    const lumbarDialR = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.024, 16), chairChromeMat);
+    lumbarDialR.rotation.z = Math.PI / 2;
+    lumbarDialR.position.set(0.175, 0.80, 0.20);
+    chairGroup.add(lumbarDialR);
+
+    // 8. Articulated 4D Adjustable Armrests with Soft-Touch Sculpted Pads
+    // Left Armrest Assembly
+    const armMountL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.030, 0.040), chairBaseMat);
+    armMountL.position.set(-0.24, 0.48, 0.02);
+    chairGroup.add(armMountL);
+
+    const armStanchionL = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.22, 16), chairBaseMat);
+    armStanchionL.position.set(-0.29, 0.62, 0.035);
+    chairGroup.add(armStanchionL);
+
+    const armCollarL = new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.021, 0.035, 16), chairChromeMat);
+    armCollarL.position.set(-0.29, 0.69, 0.035);
+    chairGroup.add(armCollarL);
+
+    const armPadL = new THREE.Mesh(new THREE.BoxGeometry(0.090, 0.028, 0.24), chairSoftMat);
+    armPadL.position.set(-0.29, 0.742, 0.035);
     chairGroup.add(armPadL);
 
-    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.22, 12), spineMat);
-    armR.position.set(0.29, 0.66, 0.06);
-    chairGroup.add(armR);
-    const armPadR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.025, 0.22), cMeshMat);
-    armPadR.position.set(0.29, 0.77, 0.06);
+    // Rounded soft caps on arm pad
+    const armCapFrontL = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.028, 16, 1, false, 0, Math.PI), chairSoftMat);
+    armCapFrontL.rotation.y = Math.PI;
+    armCapFrontL.position.set(-0.29, 0.742, -0.085);
+    chairGroup.add(armCapFrontL);
+
+    // Right Armrest Assembly
+    const armMountR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.030, 0.040), chairBaseMat);
+    armMountR.position.set(0.24, 0.48, 0.02);
+    chairGroup.add(armMountR);
+
+    const armStanchionR = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.22, 16), chairBaseMat);
+    armStanchionR.position.set(0.29, 0.62, 0.035);
+    chairGroup.add(armStanchionR);
+
+    const armCollarR = new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.021, 0.035, 16), chairChromeMat);
+    armCollarR.position.set(0.29, 0.69, 0.035);
+    chairGroup.add(armCollarR);
+
+    const armPadR = new THREE.Mesh(new THREE.BoxGeometry(0.090, 0.028, 0.24), chairSoftMat);
+    armPadR.position.set(0.29, 0.742, 0.035);
     chairGroup.add(armPadR);
+
+    const armCapFrontR = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.028, 16, 1, false, 0, Math.PI), chairSoftMat);
+    armCapFrontR.rotation.y = Math.PI;
+    armCapFrontR.position.set(0.29, 0.742, -0.085);
+    chairGroup.add(armCapFrontR);
+
+    // 9. Articulated Ergonomic Cervical Cradle Headrest Assembly
+    const headRodL = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.17, 12), chairChromeMat);
+    headRodL.position.set(-0.055, 1.28, 0.24);
+    headRodL.rotation.x = -0.14;
+    chairGroup.add(headRodL);
+
+    const headRodR = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.17, 12), chairChromeMat);
+    headRodR.position.set(0.055, 1.28, 0.24);
+    headRodR.rotation.x = -0.14;
+    chairGroup.add(headRodR);
+
+    // Articulating Dual-Pivot Hinge Knuckle
+    const headPivot = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.14, 16), chairBaseMat);
+    headPivot.rotation.z = Math.PI / 2;
+    headPivot.position.set(0, 1.34, 0.26);
+    chairGroup.add(headPivot);
+
+    // Ergonomic Cervical Cradle Pad (Curved Headrest Center & Wings)
+    const headrestCenter = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.11, 0.032), chairMeshMat);
+    headrestCenter.position.set(0, 1.37, 0.275);
+    headrestCenter.rotation.x = -0.14;
+    chairGroup.add(headrestCenter);
+
+    const headrestWingL = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.095, 0.026), chairSoftMat);
+    headrestWingL.position.set(-0.11, 1.37, 0.265);
+    headrestWingL.rotation.x = -0.14;
+    headrestWingL.rotation.y = 0.28;
+    chairGroup.add(headrestWingL);
+
+    const headrestWingR = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.095, 0.026), chairSoftMat);
+    headrestWingR.position.set(0.11, 1.37, 0.265);
+    headrestWingR.rotation.x = -0.14;
+    headrestWingR.rotation.y = -0.28;
+    chairGroup.add(headrestWingR);
+
+    // Dedicated Subtle Specular Highlight on Ergonomic Task Chair
+    const chairHighlight = new THREE.PointLight(0x7dd3fc, 0.38, 3.4);
+    chairHighlight.position.set(-0.55, 1.35, 0.85);
+    rootGroup.add(chairHighlight);
 
     // Ambient floating particles
     const pGeo = new THREE.BufferGeometry();
@@ -1780,6 +2468,12 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       camera.position.y = THREE.MathUtils.clamp(camera.position.y, 0.45, 3.6);
       camera.position.z = THREE.MathUtils.clamp(camera.position.z, -2.8, 3.2);
 
+      // Rotate deep space celestial elements smoothly
+      planetMesh.rotation.y += delta * 0.015;
+      stationGroup.rotation.y += delta * 0.025;
+      beaconRedMat.color.setHex(Math.sin(elapsedTime * 6.0) > 0.4 ? 0xff3b30 : 0x400500);
+      beaconCyanMat.color.setHex(Math.sin(elapsedTime * 6.0 + Math.PI) > 0.4 ? 0x00f0ff : 0x003344);
+
       // Gentle floating particles
       particles.rotation.y = elapsedTime * 0.02;
 
@@ -1827,8 +2521,16 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       sideTexture.dispose();
       signTexture.dispose();
       matTexture.dispose();
+      spaceTexture.dispose();
+      planetTexture.dispose();
+      ringTexture.dispose();
+      hudTexture.dispose();
+      meshTexture.dispose();
+      shadowTexture.dispose();
       deskTopGeo.dispose();
       pGeo.dispose();
+      starGeo.dispose();
+      cosmicGeo.dispose();
 
       if (renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
