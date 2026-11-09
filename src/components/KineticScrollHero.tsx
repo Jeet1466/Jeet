@@ -210,7 +210,7 @@ export const KineticScrollHero: React.FC = () => {
             </h1>
 
             {/* Direct Enter Portfolio Button */}
-            <div className="mt-7 pointer-events-auto flex items-center gap-4">
+            {/* <div className="mt-7 pointer-events-auto flex items-center gap-4">
               <button
                 onClick={() => {
                   const track = heroTrackRef.current;
@@ -226,7 +226,7 @@ export const KineticScrollHero: React.FC = () => {
                 <span>Enter Portfolio</span>
                 <ArrowDown className="w-4 h-4" />
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -288,7 +288,7 @@ export const KineticScrollHero: React.FC = () => {
                   <ArrowDown className="w-4 h-4" />
                 </button>
 
-                <button
+                {/* <button
                   onClick={() => {
                     targetProgressRef.current = 0.0;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -296,7 +296,7 @@ export const KineticScrollHero: React.FC = () => {
                   className="border border-white/20 hover:border-[#dfff00] text-[#e2e2e2] hover:text-[#dfff00] font-technical text-[12px] py-3.5 px-6 rounded-sm uppercase tracking-widest font-semibold flex items-center gap-2 transition-all cursor-pointer"
                 >
                   <span>Back to 3D Room ↑</span>
-                </button>
+                </button> */}
 
                 <div className="inline-flex items-center gap-2 px-3 py-2 text-[11px] font-technical text-[#dfff00]/70">
                   <span>▼ SCROLL DOWN FOR PERFORMANCE MODULES</span>

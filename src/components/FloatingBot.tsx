@@ -255,8 +255,11 @@ export const FloatingBot: React.FC<FloatingBotProps> = ({ onNavigateToProjects }
         // When cursor is RIGHT of bot (dx > 0), bot turns RIGHT (rotY > 0).
         // When cursor is BELOW bot (dy > 0), bot pitches DOWN (rotX > 0).
         // When cursor is ABOVE bot (dy < 0), bot pitches UP (rotX < 0).
-        const rotY = Math.max(-0.55, Math.min(0.55, (dx / window.innerWidth) * 1.5));
-        const rotX = Math.max(-0.45, Math.min(0.45, (dy / window.innerHeight) * 1.4));
+        // const rotY = Math.max(-0.55, Math.min(0.55, (dx / window.innerWidth) * 1.5));
+        // const rotX = Math.max(-0.45, Math.min(0.45, (dy / window.innerHeight) * 1.4));
+
+        const rotY = Math.max(-0.35, Math.min(0.35, (dx / window.innerWidth) * 1.5));
+        const rotX = Math.max(-0.30, Math.min(0.30, (dy / window.innerHeight) * 1.4));
 
         targetRotationRef.current = { x: rotX, y: rotY };
 
