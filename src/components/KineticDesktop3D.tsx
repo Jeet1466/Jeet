@@ -12,8 +12,8 @@ interface KineticDesktop3DProps {
 }
 
 // Module-level reusable math objects for zero garbage collection
-const _camStartPos = new THREE.Vector3(2.4, 1.7, 2.2);
-const _camStartLook = new THREE.Vector3(0, 1.1, -0.15);
+const _camStartPos = new THREE.Vector3(0.0, 1.58, 2.70);
+const _camStartLook = new THREE.Vector3(0, 1.12, -0.15);
 const _camScreenPos = new THREE.Vector3(0.0, 1.35, -0.10);
 const _camScreenLook = new THREE.Vector3(0.0, 1.35, -0.44);
 const _currentTargetPos = new THREE.Vector3();
@@ -73,8 +73,8 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const height = container.clientHeight || window.innerHeight;
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(0x0e1112);
-    scene.fog = new THREE.FogExp2(0x0e1112, 0.075);
+    scene.background = new THREE.Color(0x06080b);
+    scene.fog = new THREE.FogExp2(0x06080b, 0.025);
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 50);
     camera.position.copy(_camStartPos);
@@ -101,15 +101,19 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
     pmremGenerator.dispose();
 
-    // 5. OrbitControls - Room exploration with left-click orbit & right-click pan
+    // 5. OrbitControls - Fluid room exploration with full 360 orbit & pan
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = !isSoftwareGl;
-    controls.dampingFactor = 0.05;
-    // Enable zoom only in fullscreen 3D mode; in page flow, wheel smoothly scrolls page/dives into screen
+    controls.dampingFactor = 0.08;
+    controls.rotateSpeed = 0.85;
+    controls.panSpeed = 0.85;
     controls.enableZoom = isFullscreen;
-    controls.minDistance = 0.45; // Can zoom in super close in fullscreen
-    controls.maxDistance = 4.2; // Keeps camera within room bounds
-    controls.maxPolarAngle = Math.PI / 2 - 0.02; // Cannot look from beneath floor
+    controls.minDistance = 0.6;
+    controls.maxDistance = 5.2;
+    controls.minPolarAngle = 0.12; // Can look up towards ceiling
+    controls.maxPolarAngle = Math.PI / 2 - 0.03; // Cannot dip below floor
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
     controls.target.copy(_camStartLook);
     controlsRef.current = controls;
 
@@ -214,115 +218,41 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     // --- B. DEEP 3D CELESTIAL COSMOS OUTSIDE PANORAMIC OBSERVATION WINDOW ---
     // User requested: "In 3D Make Chair and Space outside window more realistic"
     // Features:
-    // 1. Deep cosmic curved celestial panorama with layered multi-spectral nebulae and dust lanes (z ~ -20)
-    // 2. Volumetric 3D multi-spectral starfield point cloud (1,200+ stars distributed at z ~ -6.5 to -28)
-    // 3. True 3D Gas Giant Planet with realistic atmospheric bands, great storm vortex, and Rayleigh limb glow (at z = -14.5)
-    // 4. 3D Inclined multi-band planetary ring system with Cassini division and icy dust striations
-    // 5. Distant orbital relay habitat station with solar arrays, communication dish, and flashing collision beacons (at z = -8.5)
+    // 1. Pristine black starry deep cosmic void (z ~ -20)
+    // 2. Volumetric 3D multi-spectral starfield point cloud (1,600+ stars distributed at z ~ -5.5 to -26)
+    // 3. Photorealistic Distant Moon with lunar maria, ray crater systems, and waxing gibbous phase shading (at z = -12.0)
 
-    // 1. High-Resolution Deep Cosmic Sky Panorama
+    // 1. Pristine Pitch-Black Deep Cosmic Sky Panorama
     const spaceCanvas = document.createElement('canvas');
     spaceCanvas.width = 2048;
     spaceCanvas.height = 1024;
     const spCtx = spaceCanvas.getContext('2d')!;
 
-    // Cosmic void base
-    const bgGrad = spCtx.createLinearGradient(0, 0, 2048, 1024);
-    bgGrad.addColorStop(0, '#020308');
-    bgGrad.addColorStop(0.3, '#040714');
-    bgGrad.addColorStop(0.65, '#020510');
-    bgGrad.addColorStop(1, '#010207');
-    spCtx.fillStyle = bgGrad;
+    // Pure deep black cosmic void
+    spCtx.fillStyle = '#000103';
     spCtx.fillRect(0, 0, 2048, 1024);
 
-    // Multi-Layer Billowing Nebulae across panoramic viewport
-    // Left Zone (Framed in left window pane): Glowing Magenta/Violet Carina emission complex
-    const nebMagenta = spCtx.createRadialGradient(420, 400, 30, 420, 400, 460);
-    nebMagenta.addColorStop(0, 'rgba(217, 70, 239, 0.46)');
-    nebMagenta.addColorStop(0.35, 'rgba(147, 51, 234, 0.28)');
-    nebMagenta.addColorStop(0.7, 'rgba(76, 29, 149, 0.12)');
-    nebMagenta.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = nebMagenta;
-    spCtx.fillRect(0, 0, 2048, 1024);
-
-    // Distant Spiral Galaxy (Andromeda-style inclined disk in left window sky)
-    spCtx.save();
-    spCtx.translate(340, 250);
-    spCtx.rotate(-0.35);
-    // Outer galaxy spiral halo
-    const galOuter = spCtx.createRadialGradient(0, 0, 10, 0, 0, 110);
-    galOuter.addColorStop(0, 'rgba(224, 242, 254, 0.75)');
-    galOuter.addColorStop(0.35, 'rgba(56, 189, 248, 0.35)');
-    galOuter.addColorStop(0.7, 'rgba(99, 102, 241, 0.15)');
-    galOuter.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = galOuter;
-    spCtx.beginPath();
-    spCtx.ellipse(0, 0, 110, 34, 0, 0, Math.PI * 2);
-    spCtx.fill();
-    // Bright galactic nucleus core
-    const galCore = spCtx.createRadialGradient(0, 0, 2, 0, 0, 22);
-    galCore.addColorStop(0, '#ffffff');
-    galCore.addColorStop(0.4, 'rgba(254, 240, 138, 0.85)');
-    galCore.addColorStop(1, 'rgba(234, 179, 8, 0)');
-    spCtx.fillStyle = galCore;
-    spCtx.beginPath();
-    spCtx.ellipse(0, 0, 22, 10, 0, 0, Math.PI * 2);
-    spCtx.fill();
-    spCtx.restore();
-
-    // Center-Right Zone: Luminous Cyan & Turquoise Ionization Cloud
-    const nebCyan = spCtx.createRadialGradient(1350, 360, 40, 1350, 360, 520);
-    nebCyan.addColorStop(0, 'rgba(6, 182, 212, 0.44)');
-    nebCyan.addColorStop(0.4, 'rgba(14, 116, 144, 0.26)');
-    nebCyan.addColorStop(0.75, 'rgba(8, 47, 73, 0.10)');
-    nebCyan.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = nebCyan;
-    spCtx.fillRect(0, 0, 2048, 1024);
-
-    // Warm Gold Stellar Nursery Filaments & Ionized Gas
-    const nebGold = spCtx.createRadialGradient(1020, 480, 20, 1020, 480, 380);
-    nebGold.addColorStop(0, 'rgba(234, 179, 8, 0.30)');
-    nebGold.addColorStop(0.45, 'rgba(223, 255, 0, 0.14)');
-    nebGold.addColorStop(0.8, 'rgba(161, 98, 7, 0.04)');
-    nebGold.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    spCtx.fillStyle = nebGold;
-    spCtx.fillRect(0, 0, 2048, 1024);
-
-    // Interstellar Dark Dust Absorption Lanes (Eagle Nebula "Pillars")
-    spCtx.strokeStyle = 'rgba(2, 4, 8, 0.62)';
-    spCtx.lineWidth = 26;
-    spCtx.filter = 'blur(10px)';
-    spCtx.beginPath();
-    spCtx.moveTo(280, 460);
-    spCtx.bezierCurveTo(550, 380, 750, 450, 1100, 360);
-    spCtx.stroke();
-    spCtx.beginPath();
-    spCtx.moveTo(700, 560);
-    spCtx.bezierCurveTo(950, 460, 1280, 420, 1680, 310);
-    spCtx.stroke();
-    spCtx.filter = 'none';
-
-    // Dense Field of 850 Distant Micro-Stars baked into backdrop
-    for (let s = 0; s < 850; s++) {
-      const sx = (Math.sin(s * 1537.7) * 0.5 + 0.5) * 2048;
-      const sy = (Math.cos(s * 821.3) * 0.5 + 0.5) * 1024;
-      const sr = (s % 13 === 0) ? 2.4 : (s % 4 === 0 ? 1.5 : 0.8);
-      const alpha = 0.35 + (s % 7) * 0.10;
-      spCtx.fillStyle = (s % 9 === 0) ? `rgba(223, 255, 0, ${alpha})` :
-                        (s % 5 === 0) ? `rgba(147, 197, 253, ${alpha})` :
-                        (s % 7 === 0) ? `rgba(244, 114, 182, ${alpha})` :
+    // Dense field of 1,200 distant, sparkling, needle-sharp micro-stars
+    for (let s = 0; s < 1200; s++) {
+      const sx = (Math.sin(s * 1741.9) * 0.5 + 0.5) * 2048;
+      const sy = (Math.cos(s * 913.7) * 0.5 + 0.5) * 1024;
+      const sr = (s % 17 === 0) ? 2.2 : (s % 5 === 0 ? 1.4 : 0.75);
+      const alpha = 0.35 + (s % 9) * 0.08;
+      spCtx.fillStyle = (s % 11 === 0) ? `rgba(186, 230, 253, ${alpha})` :
+                        (s % 7 === 0) ? `rgba(254, 240, 138, ${alpha})` :
+                        (s % 19 === 0) ? `rgba(223, 255, 0, ${alpha})` :
                         `rgba(255, 255, 255, ${alpha})`;
       spCtx.beginPath();
       spCtx.arc(sx, sy, sr, 0, Math.PI * 2);
       spCtx.fill();
 
-      // Optical diffraction spikes on bright primary stars
-      if (s % 27 === 0) {
-        spCtx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.75})`;
-        spCtx.lineWidth = 1;
+      // Subtle optical diffraction cross on primary anchor stars
+      if (s % 31 === 0) {
+        spCtx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.7})`;
+        spCtx.lineWidth = 0.8;
         spCtx.beginPath();
-        spCtx.moveTo(sx - 10, sy); spCtx.lineTo(sx + 10, sy);
-        spCtx.moveTo(sx, sy - 10); spCtx.lineTo(sx, sy + 10);
+        spCtx.moveTo(sx - 9, sy); spCtx.lineTo(sx + 9, sy);
+        spCtx.moveTo(sx, sy - 9); spCtx.lineTo(sx, sy + 9);
         spCtx.stroke();
       }
     }
@@ -330,12 +260,12 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const spaceTexture = new THREE.CanvasTexture(spaceCanvas);
     spaceTexture.colorSpace = THREE.SRGBColorSpace;
 
-    // Curved panoramic celestial backdrop (parabolic curved wrap)
-    const cosmicGeo = new THREE.PlaneGeometry(42, 24, 32, 1);
+    // Curved celestial backdrop
+    const cosmicGeo = new THREE.PlaneGeometry(44, 24, 32, 1);
     const cPos = cosmicGeo.attributes.position;
     for (let i = 0; i < cPos.count; i++) {
       const x = cPos.getX(i);
-      cPos.setZ(i, -(x * x) * 0.014);
+      cPos.setZ(i, -(x * x) * 0.012);
     }
     cosmicGeo.computeVertexNormals();
 
@@ -347,27 +277,25 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     rootGroup.add(spaceMesh);
 
     // 2. Volumetric 3D Multi-Magnitude Starfield (True 3D Points Cloud)
-    const starCount = 1200;
+    const starCount = 1600;
     const starGeo = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
 
     for (let i = 0; i < starCount; i++) {
-      starPositions[i * 3] = (Math.random() - 0.5) * 44;
+      starPositions[i * 3] = (Math.random() - 0.5) * 48;
       starPositions[i * 3 + 1] = -4 + Math.random() * 20;
-      starPositions[i * 3 + 2] = -6.5 - Math.random() * 20;
+      starPositions[i * 3 + 2] = -5.5 - Math.random() * 22;
 
-      const starType = i % 10;
+      const starType = i % 8;
       if (starType <= 2) {
-        starColors[i * 3] = 0.72; starColors[i * 3 + 1] = 0.85; starColors[i * 3 + 2] = 1.0;
+        starColors[i * 3] = 0.85; starColors[i * 3 + 1] = 0.92; starColors[i * 3 + 2] = 1.0;
       } else if (starType <= 5) {
         starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 1.0; starColors[i * 3 + 2] = 1.0;
-      } else if (starType <= 7) {
-        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.94; starColors[i * 3 + 2] = 0.70;
-      } else if (starType <= 8) {
-        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.68; starColors[i * 3 + 2] = 0.45;
+      } else if (starType <= 6) {
+        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.95; starColors[i * 3 + 2] = 0.82;
       } else {
-        starColors[i * 3] = 0.87; starColors[i * 3 + 1] = 1.0; starColors[i * 3 + 2] = 0.0;
+        starColors[i * 3] = 0.92; starColors[i * 3 + 1] = 1.0; starColors[i * 3 + 2] = 0.4;
       }
     }
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
@@ -376,227 +304,137 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     const starField = new THREE.Points(
       starGeo,
       new THREE.PointsMaterial({
-        size: 0.08,
+        size: 0.07,
         vertexColors: true,
         transparent: true,
-        opacity: 0.92,
+        opacity: 0.95,
         fog: false
       })
     );
     rootGroup.add(starField);
 
-    // 3. True 3D Gas Giant Planet with Fluid Dynamic Atmospheric Bands & Storms
-    const planetGroup = new THREE.Group();
-    // Positioned in upper center-right window opening
-    planetGroup.position.set(0.85, 2.42, -8.4);
-    rootGroup.add(planetGroup);
+    // 3. Photorealistic Distant Moon in Deep Space
+    const moonGroup = new THREE.Group();
+    moonGroup.position.set(1.05, 2.65, -12.0);
+    rootGroup.add(moonGroup);
 
-    // High-Resolution Atmospheric Canvas Texture (1024x512)
-    const planetCanvas = document.createElement('canvas');
-    planetCanvas.width = 1024;
-    planetCanvas.height = 512;
-    const plCtx = planetCanvas.getContext('2d')!;
+    // High-Resolution 1024x512 Procedural Lunar Surface Texture
+    const moonCanvas = document.createElement('canvas');
+    moonCanvas.width = 1024;
+    moonCanvas.height = 512;
+    const mnCtx = moonCanvas.getContext('2d')!;
 
-    // Zonal jet streams and turbulent Jovian/Neptunian cloud decks
-    const bandColors = [
-      '#051527', '#0a2340', '#0284c7', '#38bdf8', '#0284c7',
-      '#071a33', '#1e3a8a', '#60a5fa', '#0c4a6e', '#38bdf8',
-      '#0f2b48', '#0369a1', '#7dd3fc', '#0b2038', '#03172c'
+    // Anorthosite Lunar Highlands Base (Pale reflective lunar regolith)
+    const highlandsGrad = mnCtx.createLinearGradient(0, 0, 1024, 0);
+    highlandsGrad.addColorStop(0, '#c2c9d0');
+    highlandsGrad.addColorStop(0.5, '#b4bcc4');
+    highlandsGrad.addColorStop(1, '#a6aeb6');
+    mnCtx.fillStyle = highlandsGrad;
+    mnCtx.fillRect(0, 0, 1024, 512);
+
+    // Basaltic Lunar Maria (Dark volcanic plains: Oceanus Procellarum, Mare Tranquillitatis, etc.)
+    const maria = [
+      { x: 340, y: 190, rx: 110, ry: 75, angle: -0.2 }, // Oceanus Procellarum
+      { x: 490, y: 170, rx: 65, ry: 50, angle: 0.1 },  // Mare Imbrium
+      { x: 620, y: 190, rx: 55, ry: 45, angle: 0.0 },  // Mare Serenitatis
+      { x: 670, y: 250, rx: 60, ry: 50, angle: 0.15 }, // Mare Tranquillitatis
+      { x: 730, y: 310, rx: 50, ry: 40, angle: -0.1 }, // Mare Fecunditatis
+      { x: 580, y: 270, rx: 45, ry: 35, angle: 0.2 },  // Mare Vaporum
+      { x: 420, y: 290, rx: 55, ry: 45, angle: -0.15 },// Mare Nubium
+      { x: 500, y: 340, rx: 40, ry: 30, angle: 0.0 }   // Mare Humorum
     ];
-    for (let b = 0; b < bandColors.length; b++) {
-      const y = (b / bandColors.length) * 512;
-      const h = 512 / bandColors.length + 3;
-      plCtx.fillStyle = bandColors[b];
-      plCtx.beginPath();
-      plCtx.moveTo(0, y);
-      for (let x = 0; x <= 1024; x += 32) {
-        const wave = Math.sin(x * 0.024 + b * 1.8) * 5.0 + Math.cos(x * 0.05 + b) * 2.5;
-        plCtx.lineTo(x, y + wave);
-      }
-      plCtx.lineTo(1024, y + h);
-      plCtx.lineTo(0, y + h);
-      plCtx.closePath();
-      plCtx.fill();
+
+    maria.forEach(m => {
+      const mGrad = mnCtx.createRadialGradient(m.x, m.y, 5, m.x, m.y, Math.max(m.rx, m.ry));
+      mGrad.addColorStop(0, '#3f454d');
+      mGrad.addColorStop(0.65, '#4b525a');
+      mGrad.addColorStop(0.9, '#636c76');
+      mGrad.addColorStop(1, 'rgba(110, 120, 130, 0)');
+      mnCtx.fillStyle = mGrad;
+      mnCtx.beginPath();
+      mnCtx.ellipse(m.x, m.y, m.rx, m.ry, m.angle, 0, Math.PI * 2);
+      mnCtx.fill();
+    });
+
+    // Tycho Crater Ray System (Southern Lunar Highlands)
+    const tychoX = 520, tychoY = 380;
+    // Bright ejecta rays radiating across the lunar disc
+    for (let a = 0; a < 24; a++) {
+      const angle = (a / 24) * Math.PI * 2 + 0.1;
+      const rayLen = 90 + Math.random() * 160;
+      mnCtx.strokeStyle = 'rgba(235, 242, 250, 0.25)';
+      mnCtx.lineWidth = 1.5 + (a % 3 === 0 ? 2 : 0);
+      mnCtx.beginPath();
+      mnCtx.moveTo(tychoX, tychoY);
+      mnCtx.lineTo(tychoX + Math.cos(angle) * rayLen, tychoY + Math.sin(angle) * rayLen);
+      mnCtx.stroke();
+    }
+    // Tycho bright impact crater center
+    mnCtx.fillStyle = '#ffffff';
+    mnCtx.beginPath();
+    mnCtx.arc(tychoX, tychoY, 6, 0, Math.PI * 2);
+    mnCtx.fill();
+
+    // Copernicus & Kepler Ray Craters
+    mnCtx.fillStyle = 'rgba(240, 245, 252, 0.9)';
+    mnCtx.beginPath(); mnCtx.arc(380, 225, 5, 0, Math.PI * 2); mnCtx.fill();
+    mnCtx.beginPath(); mnCtx.arc(290, 235, 4, 0, Math.PI * 2); mnCtx.fill();
+
+    // Micro-craters with shadow relief across the surface
+    for (let c = 0; c < 120; c++) {
+      const cx = (Math.sin(c * 832.1) * 0.5 + 0.5) * 1024;
+      const cy = (Math.cos(c * 429.3) * 0.5 + 0.5) * 512;
+      const cr = 2.0 + (c % 7) * 1.2;
+      // Shadowed interior
+      mnCtx.fillStyle = 'rgba(20, 25, 30, 0.45)';
+      mnCtx.beginPath();
+      mnCtx.arc(cx - 0.8, cy, cr, 0, Math.PI * 2);
+      mnCtx.fill();
+      // Sunlit rim highlight
+      mnCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      mnCtx.beginPath();
+      mnCtx.arc(cx + 0.8, cy, cr * 0.85, 0, Math.PI * 2);
+      mnCtx.fill();
     }
 
-    // Atmospheric swirling eddy plumes & storm filaments
-    for (let c = 0; c < 45; c++) {
-      const cy = Math.random() * 512;
-      const cx = Math.random() * 1024;
-      const cw = 110 + Math.random() * 240;
-      const ch = 4 + Math.random() * 12;
-      plCtx.fillStyle = (c % 3 === 0) ? 'rgba(224, 242, 254, 0.28)' :
-                        (c % 2 === 0) ? 'rgba(14, 165, 233, 0.25)' :
-                        'rgba(3, 105, 161, 0.32)';
-      plCtx.beginPath();
-      plCtx.ellipse(cx, cy, cw / 2, ch / 2, Math.sin(cx * 0.01) * 0.1, 0, Math.PI * 2);
-      plCtx.fill();
-    }
+    // Photorealistic Moon Phase / Solar Terminator Shading (Waxing Gibbous)
+    const termGrad = mnCtx.createLinearGradient(0, 0, 1024, 0);
+    termGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+    termGrad.addColorStop(0.55, 'rgba(0, 0, 0, 0)');
+    termGrad.addColorStop(0.72, 'rgba(0, 2, 6, 0.75)');
+    termGrad.addColorStop(1, 'rgba(0, 1, 3, 0.98)');
+    mnCtx.fillStyle = termGrad;
+    mnCtx.fillRect(0, 0, 1024, 512);
 
-    // Great Cyclonic Vortex Storm with spiral eyewall
-    const stormX = 430, stormY = 295;
-    const stormGrad = plCtx.createRadialGradient(stormX, stormY, 4, stormX, stormY, 46);
-    stormGrad.addColorStop(0, '#f8fafc');
-    stormGrad.addColorStop(0.28, '#7dd3fc');
-    stormGrad.addColorStop(0.65, '#0284c7');
-    stormGrad.addColorStop(1, 'rgba(2, 132, 199, 0)');
-    plCtx.fillStyle = stormGrad;
-    plCtx.beginPath();
-    plCtx.ellipse(stormX, stormY, 46, 24, -0.12, 0, Math.PI * 2);
-    plCtx.fill();
+    const moonTexture = new THREE.CanvasTexture(moonCanvas);
+    moonTexture.colorSpace = THREE.SRGBColorSpace;
 
-    // Planet Day/Night Terminator Shading (Directional Solar Lighting)
-    const termGrad = plCtx.createLinearGradient(0, 0, 1024, 0);
-    termGrad.addColorStop(0, 'rgba(255, 255, 255, 0.20)');
-    termGrad.addColorStop(0.52, 'rgba(0, 0, 0, 0)');
-    termGrad.addColorStop(0.82, 'rgba(0, 0, 0, 0.68)');
-    termGrad.addColorStop(1, 'rgba(0, 0, 0, 0.92)');
-    plCtx.fillStyle = termGrad;
-    plCtx.fillRect(0, 0, 1024, 512);
-
-    // Planetary Ring Shadow across upper cloud deck
-    const shadowGrad = plCtx.createLinearGradient(0, 140, 0, 210);
-    shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    shadowGrad.addColorStop(0.35, 'rgba(0, 4, 12, 0.70)');
-    shadowGrad.addColorStop(0.85, 'rgba(0, 4, 12, 0.70)');
-    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    plCtx.fillStyle = shadowGrad;
-    plCtx.fillRect(0, 140, 1024, 70);
-
-    const planetTexture = new THREE.CanvasTexture(planetCanvas);
-    planetTexture.colorSpace = THREE.SRGBColorSpace;
-
-    const planetMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(2.15, 64, 64),
-      new THREE.MeshBasicMaterial({ map: planetTexture, fog: false })
+    const moonGeo = new THREE.SphereGeometry(1.05, 48, 48);
+    const moonMesh = new THREE.Mesh(
+      moonGeo,
+      new THREE.MeshBasicMaterial({ map: moonTexture, fog: false })
     );
-    planetMesh.rotation.y = -0.55;
-    planetGroup.add(planetMesh);
+    moonMesh.rotation.y = -0.35;
+    moonGroup.add(moonMesh);
 
-    // Rayleigh Scattering Ethereal Atmospheric Limb Glow Shell
-    const atmoGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(2.26, 32, 32),
+    // Soft Lunar Optical Limb Glow Shell
+    const moonGlow = new THREE.Mesh(
+      new THREE.SphereGeometry(1.08, 32, 32),
       new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
+        color: 0xd0e2f5,
         transparent: true,
-        opacity: 0.44,
+        opacity: 0.22,
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending,
         fog: false
       })
     );
-    planetGroup.add(atmoGlow);
-
-    // 4. Authentic Concentric Multi-Band Planetary Rings (512x512 Radial Canvas)
-    const ringCanvas = document.createElement('canvas');
-    ringCanvas.width = 512;
-    ringCanvas.height = 512;
-    const rCtx = ringCanvas.getContext('2d')!;
-    const cxR = 256, cyR = 256;
-
-    // Inner radius = 2.6 / 4.8 * 256 = 138.6px
-    // Outer radius = 256px
-    // Radial Gradient representing A, B, C Rings and Cassini Division
-    const rGrad = rCtx.createRadialGradient(cxR, cyR, 138, cxR, cyR, 256);
-    rGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    rGrad.addColorStop(0.04, 'rgba(56, 189, 248, 0.35)'); // Inner Crepe Ring C
-    rGrad.addColorStop(0.18, 'rgba(147, 197, 253, 0.78)'); // Dense B-Ring Start
-    rGrad.addColorStop(0.38, 'rgba(224, 242, 254, 0.90)'); // Bright B-Ring Core
-    rGrad.addColorStop(0.52, 'rgba(186, 230, 253, 0.82)');
-    // Cassini Division Gap (Sharp dark gap)
-    rGrad.addColorStop(0.56, 'rgba(1, 2, 6, 0.06)');
-    rGrad.addColorStop(0.62, 'rgba(1, 2, 6, 0.06)');
-    // Outer A-Ring
-    rGrad.addColorStop(0.66, 'rgba(125, 211, 252, 0.72)');
-    rGrad.addColorStop(0.82, 'rgba(186, 230, 253, 0.65)');
-    rGrad.addColorStop(0.85, 'rgba(1, 2, 6, 0.15)'); // Encke Division slit
-    rGrad.addColorStop(0.88, 'rgba(125, 211, 252, 0.60)');
-    rGrad.addColorStop(0.96, 'rgba(56, 189, 248, 0.35)'); // F-Ring edge
-    rGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    rCtx.fillStyle = rGrad;
-    rCtx.beginPath();
-    rCtx.arc(cxR, cyR, 256, 0, Math.PI * 2);
-    rCtx.fill();
-
-    // Concentric hairline micro-ringlet striations for high-fidelity realism
-    for (let ri = 0; ri < 30; ri++) {
-      const radius = 142 + ri * 3.6;
-      if (radius >= 198 && radius <= 208) continue; // Skip Cassini gap
-      rCtx.strokeStyle = (ri % 2 === 0) ? 'rgba(255, 255, 255, 0.14)' : 'rgba(10, 30, 60, 0.18)';
-      rCtx.lineWidth = 1;
-      rCtx.beginPath();
-      rCtx.arc(cxR, cyR, radius, 0, Math.PI * 2);
-      rCtx.stroke();
-    }
-
-    const ringTexture = new THREE.CanvasTexture(ringCanvas);
-    ringTexture.colorSpace = THREE.SRGBColorSpace;
-
-    const ringMesh = new THREE.Mesh(
-      new THREE.RingGeometry(2.6, 4.8, 128),
-      new THREE.MeshBasicMaterial({
-        map: ringTexture,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.92,
-        fog: false
-      })
-    );
-    ringMesh.rotation.x = Math.PI / 2 + 0.34;
-    ringMesh.rotation.y = -0.24;
-    planetGroup.add(ringMesh);
-
-    // 5. Distant Orbital Relay Station / Deep Space Habitat (In Left Window Pane)
-    const stationGroup = new THREE.Group();
-    stationGroup.position.set(-1.75, 2.45, -5.8);
-    rootGroup.add(stationGroup);
-
-    const stationMat = new THREE.MeshStandardMaterial({ color: 0xc4d1db, roughness: 0.3, metalness: 0.85 });
-    const solarMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.2, metalness: 0.9 });
-    const beaconRedMat = new THREE.MeshBasicMaterial({ color: 0xff3b30, fog: false });
-    const beaconCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, fog: false });
-
-    // Pressurized titanium central hull cylinder
-    const stCore = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.65, 16), stationMat);
-    stationGroup.add(stCore);
-
-    // Centrifugal habitat ring torus
-    const stRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.022, 12, 24), stationMat);
-    stRing.rotation.x = Math.PI / 2;
-    stationGroup.add(stRing);
-
-    // Solar array cross truss
-    const stTruss = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.02, 0.02), stationMat);
-    stationGroup.add(stTruss);
-
-    // Twin High-Efficiency Photovoltaic Solar Panels
-    const solarL = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.010, 0.26), solarMat);
-    solarL.position.set(-0.52, 0, 0);
-    stationGroup.add(solarL);
-
-    const solarR = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.010, 0.26), solarMat);
-    solarR.position.set(0.52, 0, 0);
-    stationGroup.add(solarR);
-
-    // Parabolic Deep Space Communications Dish
-    const stDish = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.07, 16, 1, true), stationMat);
-    stDish.position.set(0, 0.38, 0.05);
-    stDish.rotation.x = 0.5;
-    stDish.rotation.y = 0.8;
-    stationGroup.add(stDish);
-
-    // Port & Starboard Blinking Navigational Collision Strobe Beacons
-    const beaconL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), beaconRedMat);
-    beaconL.position.set(-0.80, 0, 0);
-    stationGroup.add(beaconL);
-
-    const beaconR = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), beaconCyanMat);
-    beaconR.position.set(0.80, 0, 0);
-    stationGroup.add(beaconR);
+    moonGroup.add(moonGlow);
 
     // 2. Front Architectural Window Enclosure & Mullions
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x161819, roughness: 0.85, metalness: 0.1 });
-    const frameMatWall = new THREE.MeshStandardMaterial({ color: 0x101213, roughness: 0.4, metalness: 0.85 });
+    // Upgraded architectural slate and walnut materials
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x1d222a, roughness: 0.82, metalness: 0.12 });
+    const frameMatWall = new THREE.MeshStandardMaterial({ color: 0x1c2026, roughness: 0.45, metalness: 0.75 });
 
     // Left and Right Wall Flanks flanking the central window
     const wallFlankL = new THREE.Mesh(new THREE.BoxGeometry(1.8, 4.2, 0.1), wallMat);
@@ -607,8 +445,8 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     wallFlankR.position.set(3.6, 2.1, -3.2);
     rootGroup.add(wallFlankR);
 
-    // Vertical Acoustic Slats on Wall Flanks
-    const slatMat = new THREE.MeshStandardMaterial({ color: 0x222627, roughness: 0.7, metalness: 0.15 });
+    // Vertical Acoustic Slats on Wall Flanks (Rich warm smoked walnut)
+    const slatMat = new THREE.MeshStandardMaterial({ color: 0x423428, roughness: 0.65, metalness: 0.15 });
     for (let i = -4.3; i <= -2.9; i += 0.14) {
       const slat = new THREE.Mesh(new THREE.BoxGeometry(0.04, 3.8, 0.03), slatMat);
       slat.position.set(i, 2.0, -3.14);
@@ -1962,39 +1800,67 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     armCapFrontR.position.set(0.29, 0.742, -0.085);
     chairGroup.add(armCapFrontR);
 
-    // 9. Articulated Ergonomic Cervical Cradle Headrest Assembly
+    // 9. Articulated Ergonomic Cervical Cradle Headrest Assembly (Anatomically Correct Orientation)
+    // Sitter faces front (-Z) towards desk; soft contoured mesh cushion is in FRONT facing sitter's head,
+    // while the structural composite shell and dual telescoping chrome rods are BEHIND (+Z) facing the room.
+    
+    // Rear telescoping chrome support rods rising from behind the wishbone frame
     const headRodL = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.17, 12), chairChromeMat);
-    headRodL.position.set(-0.055, 1.28, 0.24);
-    headRodL.rotation.x = -0.14;
+    headRodL.position.set(-0.055, 1.28, 0.22);
+    headRodL.rotation.x = -0.12;
     chairGroup.add(headRodL);
 
     const headRodR = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.17, 12), chairChromeMat);
-    headRodR.position.set(0.055, 1.28, 0.24);
-    headRodR.rotation.x = -0.14;
+    headRodR.position.set(0.055, 1.28, 0.22);
+    headRodR.rotation.x = -0.12;
     chairGroup.add(headRodR);
 
-    // Articulating Dual-Pivot Hinge Knuckle
-    const headPivot = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.14, 16), chairBaseMat);
+    // Dual-Pivot Height & Tilt Articulation Knuckle
+    const headPivot = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.14, 16), chairBaseMat);
     headPivot.rotation.z = Math.PI / 2;
-    headPivot.position.set(0, 1.34, 0.26);
+    headPivot.position.set(0, 1.35, 0.225);
     chairGroup.add(headPivot);
 
-    // Ergonomic Cervical Cradle Pad (Curved Headrest Center & Wings)
-    const headrestCenter = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.11, 0.032), chairMeshMat);
-    headrestCenter.position.set(0, 1.37, 0.275);
-    headrestCenter.rotation.x = -0.14;
+    const headPivotDial = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.018, 16), chairChromeMat);
+    headPivotDial.rotation.z = Math.PI / 2;
+    headPivotDial.position.set(0.075, 1.35, 0.225);
+    chairGroup.add(headPivotDial);
+
+    // Rear Structural Protective Composite Shell (Visible from behind the chair)
+    const headShellCenter = new THREE.Mesh(new THREE.BoxGeometry(0.185, 0.115, 0.014), chairFrameMat);
+    headShellCenter.position.set(0, 1.365, 0.212);
+    headShellCenter.rotation.x = -0.12;
+    chairGroup.add(headShellCenter);
+
+    const headShellWingL = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.10, 0.012), chairFrameMat);
+    headShellWingL.position.set(-0.108, 1.365, 0.203);
+    headShellWingL.rotation.x = -0.12;
+    headShellWingL.rotation.y = -0.28;
+    chairGroup.add(headShellWingL);
+
+    const headShellWingR = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.10, 0.012), chairFrameMat);
+    headShellWingR.position.set(0.108, 1.365, 0.203);
+    headShellWingR.rotation.x = -0.12;
+    headShellWingR.rotation.y = 0.28;
+    chairGroup.add(headShellWingR);
+
+    // Front Ergonomic Cervical Mesh Cushion (Facing forward towards user's head & desk)
+    const headrestCenter = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.11, 0.022), chairMeshMat);
+    headrestCenter.position.set(0, 1.365, 0.194);
+    headrestCenter.rotation.x = -0.12;
     chairGroup.add(headrestCenter);
 
-    const headrestWingL = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.095, 0.026), chairSoftMat);
-    headrestWingL.position.set(-0.11, 1.37, 0.265);
-    headrestWingL.rotation.x = -0.14;
-    headrestWingL.rotation.y = 0.28;
+    // Contoured Wings wrapping forward around the sides of the neck/head
+    const headrestWingL = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.095, 0.020), chairSoftMat);
+    headrestWingL.position.set(-0.105, 1.365, 0.185);
+    headrestWingL.rotation.x = -0.12;
+    headrestWingL.rotation.y = -0.28;
     chairGroup.add(headrestWingL);
 
-    const headrestWingR = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.095, 0.026), chairSoftMat);
-    headrestWingR.position.set(0.11, 1.37, 0.265);
-    headrestWingR.rotation.x = -0.14;
-    headrestWingR.rotation.y = -0.28;
+    const headrestWingR = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.095, 0.020), chairSoftMat);
+    headrestWingR.position.set(0.105, 1.365, 0.185);
+    headrestWingR.rotation.x = -0.12;
+    headrestWingR.rotation.y = 0.28;
     chairGroup.add(headrestWingR);
 
     // Dedicated Subtle Specular Highlight on Ergonomic Task Chair
@@ -2443,6 +2309,7 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       smoothedSp = THREE.MathUtils.damp(smoothedSp, currentScroll, 12.0, delta);
 
       if (smoothedSp > 0.005) {
+        controls.enabled = false;
         const t = easeInOutCubic(Math.min(smoothedSp, 1.0));
         _currentTargetPos.lerpVectors(_camStartPos, _camScreenPos, t);
         _currentLookAt.lerpVectors(_camStartLook, _camScreenLook, t);
@@ -2453,26 +2320,14 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
         if (smoothedSp >= 0.98 && onDiveComplete) {
           onDiveComplete();
         }
-      } else if (!isFullscreen) {
-        // Stylized animated camera breathing idle: gives the room a warm, living Pixar-style diorama feeling
-        const breathX = Math.sin(elapsedTime * 0.75) * 0.018;
-        const breathY = Math.cos(elapsedTime * 0.95) * 0.012;
-        camera.position.x = _camStartPos.x + breathX;
-        camera.position.y = _camStartPos.y + breathY;
+      } else {
+        controls.enabled = true;
       }
 
       controls.update();
 
-      // STRICT CAMERA CLAMPING: Camera MUST stay inside room and never cross wall/window!
-      camera.position.x = THREE.MathUtils.clamp(camera.position.x, -3.8, 3.8);
-      camera.position.y = THREE.MathUtils.clamp(camera.position.y, 0.45, 3.6);
-      camera.position.z = THREE.MathUtils.clamp(camera.position.z, -2.8, 3.2);
-
-      // Rotate deep space celestial elements smoothly
-      planetMesh.rotation.y += delta * 0.015;
-      stationGroup.rotation.y += delta * 0.025;
-      beaconRedMat.color.setHex(Math.sin(elapsedTime * 6.0) > 0.4 ? 0xff3b30 : 0x400500);
-      beaconCyanMat.color.setHex(Math.sin(elapsedTime * 6.0 + Math.PI) > 0.4 ? 0x00f0ff : 0x003344);
+      // Rotate deep space photorealistic moon smoothly
+      moonMesh.rotation.y += delta * 0.003;
 
       // Gentle floating particles
       particles.rotation.y = elapsedTime * 0.02;
@@ -2522,8 +2377,8 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
       signTexture.dispose();
       matTexture.dispose();
       spaceTexture.dispose();
-      planetTexture.dispose();
-      ringTexture.dispose();
+      moonTexture.dispose();
+      moonGeo.dispose();
       hudTexture.dispose();
       meshTexture.dispose();
       shadowTexture.dispose();
