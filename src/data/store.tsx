@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Project, Subscriber, NewsletterCampaign, SystemConfig, ScreenMode, TopicInterest } from '../types';
-import { INITIAL_PROJECTS, INITIAL_SUBSCRIBERS, INITIAL_CAMPAIGNS, INITIAL_SYSTEM_CONFIG } from './seedData';
+import { Project, Subscriber, NewsletterCampaign, SystemConfig, ScreenMode, TopicInterest, ContactMessage, ContactStatus } from '../types';
+import { INITIAL_PROJECTS, INITIAL_SUBSCRIBERS, INITIAL_CAMPAIGNS, INITIAL_SYSTEM_CONFIG, INITIAL_CONTACTS } from './seedData';
 
 interface AppContextType {
   screen: ScreenMode;
@@ -8,6 +8,7 @@ interface AppContextType {
   projects: Project[];
   subscribers: Subscriber[];
   campaigns: NewsletterCampaign[];
+  contacts: ContactMessage[];
   config: SystemConfig;
   
   // Project actions
@@ -21,9 +22,16 @@ interface AppContextType {
   
   // Newsletter actions
   subscribe: (name: string, email: string, topic: TopicInterest) => { success: boolean; message: string };
+  addSubscriber: (subscriber: { name: string; email: string; topic: TopicInterest; status?: 'ACTIVE' | 'UNSUBSCRIBED' }) => { success: boolean; message: string };
+  updateSubscriberStatus: (id: string, status: 'ACTIVE' | 'UNSUBSCRIBED') => void;
   deleteSubscriber: (id: string) => void;
   sendCampaign: (data: { subject: string; previewText: string; content: string; targetTopic: TopicInterest | 'All' }) => void;
   deleteCampaign: (id: string) => void;
+
+  // Contact actions
+  addContact: (data: { name: string; email: string; message: string; notes?: string }) => { id: string; success: boolean; message: string };
+  updateContactStatus: (id: string, status: ContactStatus, notes?: string) => void;
+  deleteContact: (id: string) => void;
   
   // Config
   updateConfig: (updates: Partial<SystemConfig>) => void;
@@ -48,6 +56,7 @@ const STORAGE_KEYS = {
   PROJECTS: 'kinetic_projects_v7',
   SUBSCRIBERS: 'kinetic_subscribers_v5',
   CAMPAIGNS: 'kinetic_campaigns_v5',
+  CONTACTS: 'kinetic_contacts_v2',
   CONFIG: 'kinetic_config_v6'
 };
 
@@ -78,6 +87,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return saved ? JSON.parse(saved) : INITIAL_CAMPAIGNS;
     } catch {
       return INITIAL_CAMPAIGNS;
+    }
+  });
+
+  const [contacts, setContacts] = useState<ContactMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.CONTACTS);
+      return saved ? JSON.parse(saved) : INITIAL_CONTACTS;
+    } catch {
+      return INITIAL_CONTACTS;
     }
   });
 
@@ -128,6 +146,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Storage failed', e);
     }
   }, [campaigns]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.CONTACTS, JSON.stringify(contacts));
+    } catch (e) {
+      console.warn('Storage failed', e);
+    }
+  }, [contacts]);
 
   useEffect(() => {
     try {
@@ -205,8 +231,71 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'NODE_INITIALIZED: Connected to Kinetic Dispatch protocol' };
   };
 
+  const addSubscriber = (data: { name: string; email: string; topic: TopicInterest; status?: 'ACTIVE' | 'UNSUBSCRIBED' }) => {
+    const trimmedEmail = data.email.trim().toLowerCase();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      return { success: false, message: 'Valid email required' };
+    }
+    const exists = subscribers.some(s => s.email.toLowerCase() === trimmedEmail);
+    if (exists) {
+      return { success: false, message: 'Subscriber with this email address already exists' };
+    }
+
+    const newSub: Subscriber = {
+      id: `sub-${Date.now()}`,
+      name: data.name.trim() || 'Anonymous Engineer',
+      email: trimmedEmail,
+      topic: data.topic,
+      status: data.status || 'ACTIVE',
+      subscribedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+
+    setSubscribers(prev => [newSub, ...prev]);
+    return { success: true, message: 'Subscriber added successfully' };
+  };
+
+  const updateSubscriberStatus = (id: string, status: 'ACTIVE' | 'UNSUBSCRIBED') => {
+    setSubscribers(prev =>
+      prev.map(s => (s.id === id ? { ...s, status } : s))
+    );
+  };
+
   const deleteSubscriber = (id: string) => {
     setSubscribers(prev => prev.filter(s => s.id !== id));
+  };
+
+  // Contact actions
+  const addContact = (data: { name: string; email: string; message: string; notes?: string }) => {
+    const trimmedEmail = data.email.trim().toLowerCase();
+    const trimmedName = data.name.trim();
+    const trimmedMessage = data.message.trim();
+
+    if (!trimmedEmail || !trimmedEmail.includes('@') || !trimmedMessage) {
+      return { id: '', success: false, message: 'Valid email and message required' };
+    }
+
+    const newContact: ContactMessage = {
+      id: `cnt-${Date.now()}`,
+      name: trimmedName || 'Anonymous Inquirer',
+      email: trimmedEmail,
+      message: trimmedMessage,
+      submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      status: 'UNREAD',
+      notes: data.notes || ''
+    };
+
+    setContacts(prev => [newContact, ...prev]);
+    return { id: newContact.id, success: true, message: 'Inquiry received and logged to database.' };
+  };
+
+  const updateContactStatus = (id: string, status: ContactStatus, notes?: string) => {
+    setContacts(prev =>
+      prev.map(c => (c.id === id ? { ...c, status, notes: notes !== undefined ? notes : c.notes } : c))
+    );
+  };
+
+  const deleteContact = (id: string) => {
+    setContacts(prev => prev.filter(c => c.id !== id));
   };
 
   const sendCampaign = (data: { subject: string; previewText: string; content: string; targetTopic: TopicInterest | 'All' }) => {
@@ -243,10 +332,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProjects(INITIAL_PROJECTS);
     setSubscribers(INITIAL_SUBSCRIBERS);
     setCampaigns(INITIAL_CAMPAIGNS);
+    setContacts(INITIAL_CONTACTS);
     setConfig(INITIAL_SYSTEM_CONFIG);
     localStorage.removeItem(STORAGE_KEYS.PROJECTS);
     localStorage.removeItem(STORAGE_KEYS.SUBSCRIBERS);
     localStorage.removeItem(STORAGE_KEYS.CAMPAIGNS);
+    localStorage.removeItem(STORAGE_KEYS.CONTACTS);
     localStorage.removeItem(STORAGE_KEYS.CONFIG);
   };
 
@@ -259,6 +350,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProjects,
         subscribers,
         campaigns,
+        contacts,
         config,
         addProject,
         updateProject,
@@ -267,9 +359,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleProjectSelection,
         selectAllProjects,
         subscribe,
+        addSubscriber,
+        updateSubscriberStatus,
         deleteSubscriber,
         sendCampaign,
         deleteCampaign,
+        addContact,
+        updateContactStatus,
+        deleteContact,
         updateConfig,
         resetToDefaults,
         isAdminOpen,

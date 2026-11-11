@@ -46,6 +46,18 @@ export interface Subscriber {
   subscribedAt: string;
 }
 
+export type ContactStatus = 'UNREAD' | 'READ' | 'REPLIED' | 'ARCHIVED';
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  submittedAt: string;
+  status: ContactStatus;
+  notes?: string;
+}
+
 export interface NewsletterCampaign {
   id: string;
   subject: string;

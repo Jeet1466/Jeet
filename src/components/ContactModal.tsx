@@ -3,7 +3,7 @@ import { useApp } from '../data/store';
 import { X, Send, CheckCircle2 } from 'lucide-react';
 
 export const ContactModal: React.FC = () => {
-  const { isContactOpen, setIsContactOpen } = useApp();
+  const { isContactOpen, setIsContactOpen, addContact } = useApp();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -13,6 +13,15 @@ export const ContactModal: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !message.trim()) return;
+    
+    // Save contact message to database
+    addContact({
+      name: name.trim() || 'Anonymous Inquirer',
+      email: email.trim(),
+      message: message.trim()
+    });
+
     setSubmitted(true);
     setTimeout(() => {
       setSubmitted(false);

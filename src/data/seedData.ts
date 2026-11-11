@@ -1,4 +1,4 @@
-import { Project, Subscriber, NewsletterCampaign, SystemConfig } from '../types';
+import { Project, Subscriber, NewsletterCampaign, SystemConfig, ContactMessage } from '../types';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -243,3 +243,42 @@ export const INITIAL_SYSTEM_CONFIG: SystemConfig = {
   linkedinUrl: 'https://linkedin.com',
   twitterUrl: 'https://x.com'
 };
+
+export const INITIAL_CONTACTS: ContactMessage[] = [
+  {
+    id: 'cnt-101',
+    name: 'Dr. Aris Thorne',
+    email: 'thorne@cern-compute.ch',
+    message: 'Hello Jeet, I reviewed your work on geodesic trajectory projections in SphereWalk and your low-latency telemetry designs. We are looking for researchers in distributed spatial algorithms. Let me know if you would be open to a technical call.',
+    submittedAt: '2026-11-10 14:32',
+    status: 'UNREAD',
+    notes: 'High priority research inquiry from CERN compute group'
+  },
+  {
+    id: 'cnt-102',
+    name: 'Sophia Sterling',
+    email: 'sophia@apex-cybersec.com',
+    message: 'Hi Jeet, we tested SubSurf across our internal staging perimeter. The DNS bruteforce deduplication and OSINT clustering were remarkably clean and fast. We are interested in contracting or hiring you for a security systems role.',
+    submittedAt: '2026-11-09 18:45',
+    status: 'UNREAD',
+    notes: 'Recruiter / Lead at Apex Cybersecurity'
+  },
+  {
+    id: 'cnt-103',
+    name: 'Vikram Malhotra',
+    email: 'v.malhotra@hypergrid.tech',
+    message: 'Great portfolio design and engineering execution. I saw your EventSetu platform and real-time WebSocket sync. Are you looking for full-stack distributed systems internships for early 2027?',
+    submittedAt: '2026-11-07 10:15',
+    status: 'READ',
+    notes: 'Emailed portfolio link and resume'
+  },
+  {
+    id: 'cnt-104',
+    name: 'David Chen',
+    email: 'dchen@quantedge.ai',
+    message: 'Inquiring about Neural Sentinel INT8 inference pipeline benchmarks on edge nodes. Would love to read your whitepaper or technical notes if public.',
+    submittedAt: '2026-11-05 16:20',
+    status: 'REPLIED',
+    notes: 'Shared repository link and benchmark graph via email'
+  }
+];

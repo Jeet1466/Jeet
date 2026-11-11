@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../data/store';
-import { Project, ProjectCategory } from '../types';
+import { Project, ProjectCategory, TopicInterest, ContactMessage, ContactStatus, Subscriber } from '../types';
 import { inferCategory, syncGithubWithCurrentProjects } from '../utils/projects';
 import {
   FolderGit2,
@@ -28,7 +28,26 @@ import {
   Code2,
   Layers,
   Sparkles,
-  Github
+  Github,
+  Lock,
+  Unlock,
+  KeyRound,
+  ShieldAlert,
+  LogOut,
+  Eye,
+  EyeOff,
+  Mail,
+  MessageSquare,
+  Download,
+  Copy,
+  Send,
+  User,
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  CheckCheck,
+  Archive
 } from 'lucide-react';
 
 export const GITHUB_LANGUAGE_COLORS: Record<string, string> = {
@@ -56,6 +75,13 @@ const CATEGORIES: ProjectCategory[] = [
   'Infrastructure',
 ];
 
+const SUBSCRIBER_TOPICS: TopicInterest[] = [
+  'All Systems',
+  'AI & Architecture',
+  'Kinetic UX',
+  'Engineering Research',
+];
+
 const PRESET_IMAGES = [
   { label: 'Cybersecurity Matrix', url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1000&q=80' },
   { label: 'AI Neural Net', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80' },
@@ -80,6 +106,9 @@ interface GitHubRepoResponse {
   updated_at: string;
 }
 
+export const ADMIN_PASSCODE = '845887';
+const ADMIN_AUTH_STORAGE_KEY = 'admin_session_auth_845887';
+
 export const AdminPanel: React.FC = () => {
   const {
     projects,
@@ -88,12 +117,246 @@ export const AdminPanel: React.FC = () => {
     deleteProject,
     toggleProjectSelection,
     selectAllProjects,
+    subscribers,
+    addSubscriber,
+    updateSubscriberStatus,
+    deleteSubscriber,
+    contacts,
+    addContact,
+    updateContactStatus,
+    deleteContact,
     setIsAdminOpen,
     setScreen,
   } = useApp();
 
-  // Active Main Part: 'current' (Part 1: Current Projects) or 'add' (Part 2: Add New Projects)
-  const [activePart, setActivePart] = useState<'current' | 'add'>('current');
+  // Admin Authentication State (Passcode: 845887)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem(ADMIN_AUTH_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [pinDigits, setPinDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isUnlockedSuccess, setIsUnlockedSuccess] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const pinInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Focus first input upon mounting lock screen
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => {
+        pinInputRefs.current[0]?.focus();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
+
+  // Lock admin session
+  const handleLock = () => {
+    try {
+      sessionStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    setIsAuthenticated(false);
+    setPinDigits(['', '', '', '', '', '']);
+    setAuthError(null);
+    setIsUnlockedSuccess(false);
+  };
+
+  // Verify PIN submission
+  const verifyPinCode = (code: string) => {
+    if (code === ADMIN_PASSCODE) {
+      setIsVerifying(true);
+      setAuthError(null);
+      setIsUnlockedSuccess(true);
+      setTimeout(() => {
+        try {
+          sessionStorage.setItem(ADMIN_AUTH_STORAGE_KEY, 'true');
+        } catch {
+          // ignore
+        }
+        setIsAuthenticated(true);
+        setIsVerifying(false);
+      }, 350);
+      return true;
+    } else {
+      setAuthError('ACCESS DENIED // INVALID AUTHORIZATION CODE');
+      setPinDigits(['', '', '', '', '', '']);
+      setTimeout(() => {
+        pinInputRefs.current[0]?.focus();
+      }, 50);
+      return false;
+    }
+  };
+
+  // Handle individual digit input
+  const handleDigitChange = (index: number, value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (!cleaned && value !== '') return;
+
+    const nextDigits = [...pinDigits];
+    nextDigits[index] = cleaned.slice(-1);
+    setPinDigits(nextDigits);
+    setAuthError(null);
+
+    // Auto-advance to next input
+    if (cleaned && index < 5) {
+      pinInputRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-verify when 6 digits are complete
+    if (cleaned && index === 5) {
+      const fullCode = nextDigits.join('');
+      if (fullCode.length === 6) {
+        verifyPinCode(fullCode);
+      }
+    }
+  };
+
+  // Handle key navigation (Backspace, Enter, Arrows)
+  const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (!pinDigits[index] && index > 0) {
+        pinInputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'Enter') {
+      const fullCode = pinDigits.join('');
+      verifyPinCode(fullCode);
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      pinInputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      pinInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  // Handle pasting full PIN code
+  const handleDigitPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+
+    const nextDigits = ['', '', '', '', '', ''];
+    for (let i = 0; i < pasted.length; i++) {
+      nextDigits[i] = pasted[i];
+    }
+    setPinDigits(nextDigits);
+    setAuthError(null);
+
+    if (pasted.length === 6) {
+      verifyPinCode(pasted);
+    } else {
+      pinInputRefs.current[Math.min(pasted.length, 5)]?.focus();
+    }
+  };
+
+  // Active Main Navigation: 'current' (Current Projects), 'add' (Add New Projects), 'subscribers' (Newsletter DB), 'contacts' (Contacts DB)
+  const [activePart, setActivePart] = useState<'current' | 'add' | 'subscribers' | 'contacts'>('current');
+
+  // --- SUBSCRIBERS DATABASE STATE ---
+  const [subscriberSearch, setSubscriberSearch] = useState('');
+  const [subscriberTopicFilter, setSubscriberTopicFilter] = useState<string>('All');
+  const [subscriberStatusFilter, setSubscriberStatusFilter] = useState<'All' | 'ACTIVE' | 'UNSUBSCRIBED'>('All');
+  const [isAddSubscriberModalOpen, setIsAddSubscriberModalOpen] = useState(false);
+  const [newSubscriberForm, setNewSubscriberForm] = useState<{
+    name: string;
+    email: string;
+    topic: TopicInterest;
+    status: 'ACTIVE' | 'UNSUBSCRIBED';
+  }>({
+    name: '',
+    email: '',
+    topic: 'All Systems',
+    status: 'ACTIVE',
+  });
+  const [newSubscriberMessage, setNewSubscriberMessage] = useState<{ success: boolean; text: string } | null>(null);
+  const [subscriberToDelete, setSubscriberToDelete] = useState<Subscriber | null>(null);
+
+  // --- CONTACTS DATABASE STATE ---
+  const [contactSearch, setContactSearch] = useState('');
+  const [contactStatusFilter, setContactStatusFilter] = useState<'All' | ContactStatus>('All');
+  const [selectedContactForModal, setSelectedContactForModal] = useState<ContactMessage | null>(null);
+  const [contactToDelete, setContactToDelete] = useState<ContactMessage | null>(null);
+  const [contactNotesDraft, setContactNotesDraft] = useState('');
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  // Quick clipboard copy helper
+  const handleCopyText = (text: string, label: string) => {
+    try {
+      navigator.clipboard?.writeText(text);
+      setCopiedText(label);
+      setTimeout(() => setCopiedText(null), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
+  // Export Subscribers as CSV
+  const exportSubscribersCSV = () => {
+    const headers = ['ID', 'Name', 'Email', 'Topic Stream', 'Status', 'Subscribed At'];
+    const rows = subscribers.map((s) => [
+      `"${s.id}"`,
+      `"${s.name.replace(/"/g, '""')}"`,
+      `"${s.email.replace(/"/g, '""')}"`,
+      `"${s.topic}"`,
+      `"${s.status}"`,
+      `"${s.subscribedAt}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', `subscribers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export Subscribers as JSON
+  const exportSubscribersJSON = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(subscribers, null, 2));
+    const link = document.createElement('a');
+    link.setAttribute('href', dataStr);
+    link.setAttribute('download', `subscribers_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export Contacts as CSV
+  const exportContactsCSV = () => {
+    const headers = ['ID', 'Name', 'Email', 'Status', 'Submitted At', 'Notes', 'Message'];
+    const rows = contacts.map((c) => [
+      `"${c.id}"`,
+      `"${c.name.replace(/"/g, '""')}"`,
+      `"${c.email.replace(/"/g, '""')}"`,
+      `"${c.status}"`,
+      `"${c.submittedAt}"`,
+      `"${(c.notes || '').replace(/"/g, '""')}"`,
+      `"${c.message.replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', `contacts_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export Contacts as JSON
+  const exportContactsJSON = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(contacts, null, 2));
+    const link = document.createElement('a');
+    link.setAttribute('href', dataStr);
+    link.setAttribute('download', `contacts_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // For Part 2 (Add New Projects), two ways: 'github' or 'manual'
   const [addMode, setAddMode] = useState<'github' | 'manual'>('github');
@@ -426,6 +689,151 @@ export const AdminPanel: React.FC = () => {
 
   const selectedCount = projects.filter((p) => p.selected !== false).length;
 
+  // Render High-Tech Security Authentication Gate if not authenticated with Passcode 845887
+  if (!isAuthenticated) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0a0c0d] text-[#e2e2e2] flex flex-col items-center justify-center p-4 selection:bg-[#dfff00] selection:text-[#121414]">
+        {/* Subtle Background Grid Pattern */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-20"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)',
+            backgroundSize: '36px 36px',
+          }}
+        />
+
+        {/* Ambient Subtle Radial Glow */}
+        <div className="absolute w-[500px] h-[500px] rounded-full bg-[#dfff00]/5 blur-[120px] pointer-events-none" />
+
+        {/* Auth Box Container */}
+        <div className="relative w-full max-w-md bg-[#121516] border border-white/10 rounded-sm p-6 sm:p-8 shadow-2xl z-10 backdrop-blur-md">
+          {/* Top Security Header */}
+          <div className="flex items-center justify-between pb-5 border-b border-white/10 mb-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-sm bg-[#dfff00]/10 border border-[#dfff00]/30 flex items-center justify-center text-[#dfff00]">
+                <ShieldAlert className="w-4 h-4 animate-pulse" />
+              </div>
+              <div>
+                <div className="font-technical text-[10px] text-[#dfff00] tracking-widest uppercase font-bold">
+                  SYSTEM SECURITY // RESTRICTED
+                </div>
+                <div className="text-white text-sm font-bold font-mono tracking-wide">
+                  ADMIN CONSOLE ACCESS
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleClose}
+              title="Return to Portfolio"
+              className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-sm transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Icon & Prompt */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white/5 border border-white/10 mb-3 shadow-[0_0_20px_rgba(223,255,0,0.15)]">
+              {isUnlockedSuccess ? (
+                <Unlock className="w-7 h-7 text-[#dfff00]" />
+              ) : (
+                <Lock className="w-7 h-7 text-[#dfff00]" />
+              )}
+            </div>
+            <h2 className="text-lg font-bold text-white font-mono tracking-tight uppercase">
+              {isUnlockedSuccess ? 'CREDENTIALS VERIFIED' : 'AUTHORIZATION REQUIRED'}
+            </h2>
+            <p className="text-xs text-neutral-400 mt-1 max-w-xs mx-auto">
+              Enter the 6-digit administrative security code to unlock the system management console.
+            </p>
+          </div>
+
+          {/* 6-Digit PIN Boxes */}
+          <div className="mb-6">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2" onPaste={handleDigitPaste}>
+              {pinDigits.map((digit, idx) => (
+                <input
+                  key={idx}
+                  ref={(el) => { pinInputRefs.current[idx] = el; }}
+                  type={showPin ? 'text' : 'password'}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleDigitChange(idx, e.target.value)}
+                  onKeyDown={(e) => handleDigitKeyDown(idx, e)}
+                  disabled={isVerifying || isUnlockedSuccess}
+                  className={`w-11 h-13 sm:w-12 sm:h-14 text-center font-mono text-xl sm:text-2xl font-bold bg-[#0d0f10] border rounded-xs transition-all outline-none ${
+                    digit
+                      ? 'border-[#dfff00] text-[#dfff00] shadow-[0_0_12px_rgba(223,255,0,0.25)]'
+                      : 'border-white/15 text-white focus:border-[#dfff00]/60'
+                  } ${authError ? 'border-red-500/80 text-red-400' : ''}`}
+                  autoComplete="off"
+                />
+              ))}
+            </div>
+
+            {/* Mask Toggle */}
+            <div className="flex items-center justify-between mt-3 px-1 text-xs text-neutral-400 font-technical">
+              <span>SECURITY PROTOCOL: PIN</span>
+              <button
+                type="button"
+                onClick={() => setShowPin(!showPin)}
+                className="hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                <span>{showPin ? 'HIDE DIGITS' : 'SHOW DIGITS'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Error Message Banner */}
+          {authError && (
+            <div className="mb-5 p-2.5 bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-technical flex items-center gap-2 rounded-xs">
+              <ShieldAlert className="w-4 h-4 shrink-0 text-red-400" />
+              <span>{authError}</span>
+            </div>
+          )}
+
+          {/* Success Banner */}
+          {isUnlockedSuccess && (
+            <div className="mb-5 p-2.5 bg-green-950/40 border border-[#dfff00]/50 text-[#dfff00] text-xs font-technical flex items-center gap-2 rounded-xs">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>ACCESS GRANTED // INITIALIZING CONSOLE...</span>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={() => verifyPinCode(pinDigits.join(''))}
+              disabled={isVerifying || pinDigits.some((d) => !d) || isUnlockedSuccess}
+              className="w-full py-3 bg-[#dfff00] text-[#121414] font-technical text-xs font-bold uppercase tracking-wider rounded-xs transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(223,255,0,0.25)]"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>{isVerifying ? 'VERIFYING CREDENTIALS...' : 'AUTHENTICATE & UNLOCK'}</span>
+            </button>
+
+            <button
+              onClick={handleClose}
+              className="w-full py-2.5 bg-transparent border border-white/10 hover:border-white/30 text-white/70 hover:text-white font-technical text-xs uppercase tracking-wider rounded-xs transition-colors cursor-pointer"
+            >
+              ABORT // RETURN TO PORTFOLIO
+            </button>
+          </div>
+
+          {/* Subtle Security Hash Footer */}
+          <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[10px] font-technical text-neutral-500">
+            <span>AUTH PROTOCOL: v2.4</span>
+            <span>SECURE ENCLAVE 256</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-[#121414] text-[#e2e2e2] flex flex-col overflow-hidden font-sans">
       {/* ======================================================== */}
@@ -442,13 +850,23 @@ export const AdminPanel: React.FC = () => {
             <span className="sm:hidden">Back</span>
           </button>
 
+          <button
+            onClick={handleLock}
+            title="Lock Admin Console & Require Passcode"
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-red-500/30 text-red-400 hover:text-red-300 hover:border-red-500/60 font-technical text-xs uppercase tracking-wider transition-colors cursor-pointer"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Lock Console</span>
+            <span className="sm:hidden">Lock</span>
+          </button>
+
           <div className="h-5 w-px bg-white/10 hidden md:block" />
 
-          {/* TWO MAIN PARTS NAVIGATION TABS */}
-          <div className="flex items-center gap-1 sm:gap-2 bg-[#161818] p-1 border border-white/10 rounded-xs">
+          {/* MAIN NAVIGATION TABS */}
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-[#161818] p-1 border border-white/10 rounded-xs overflow-x-auto">
             <button
               onClick={() => setActivePart('current')}
-              className={`px-3 py-1.5 font-technical text-xs uppercase tracking-wider font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 font-technical text-xs uppercase tracking-wider font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                 activePart === 'current'
                   ? 'bg-[#dfff00] text-[#121414]'
                   : 'text-[#c6c9ab] hover:text-white hover:bg-white/5'
@@ -467,14 +885,60 @@ export const AdminPanel: React.FC = () => {
 
             <button
               onClick={() => setActivePart('add')}
-              className={`px-3 py-1.5 font-technical text-xs uppercase tracking-wider font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 font-technical text-xs uppercase tracking-wider font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                 activePart === 'add'
                   ? 'bg-[#dfff00] text-[#121414]'
                   : 'text-[#c6c9ab] hover:text-white hover:bg-white/5'
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Add New Projects</span>
+              <span>Add Projects</span>
+            </button>
+
+            <button
+              onClick={() => setActivePart('subscribers')}
+              className={`px-2.5 sm:px-3 py-1.5 font-technical text-xs uppercase tracking-wider font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
+                activePart === 'subscribers'
+                  ? 'bg-[#dfff00] text-[#121414]'
+                  : 'text-[#c6c9ab] hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Newsletter DB</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-xs font-bold ${
+                  activePart === 'subscribers'
+                    ? 'bg-[#121414]/20 text-[#121414]'
+                    : 'bg-white/10 text-white'
+                }`}
+              >
+                {subscribers.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActivePart('contacts')}
+              className={`px-2.5 sm:px-3 py-1.5 font-technical text-xs uppercase tracking-wider font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
+                activePart === 'contacts'
+                  ? 'bg-[#dfff00] text-[#121414]'
+                  : 'text-[#c6c9ab] hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Contacts DB</span>
+              {contacts.filter((c) => c.status === 'UNREAD').length > 0 ? (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-xs font-bold bg-amber-400 text-black animate-pulse">
+                  {contacts.filter((c) => c.status === 'UNREAD').length} NEW
+                </span>
+              ) : (
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-xs ${
+                    activePart === 'contacts' ? 'bg-[#121414]/20 text-[#121414]' : 'bg-white/10 text-white'
+                  }`}
+                >
+                  {contacts.length}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -1395,6 +1859,604 @@ export const AdminPanel: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* ======================================================== */}
+        {/* PART 3: NEWSLETTER SUBSCRIBERS DATABASE */}
+        {/* ======================================================== */}
+        {activePart === 'subscribers' && (
+          <div className="flex-1 flex flex-col overflow-hidden bg-[#121414]">
+            {/* Top Stat Summary & Controls Bar */}
+            <div className="border-b border-white/10 bg-[#161818] p-4 flex flex-col gap-4 shrink-0">
+              {/* Stat Metric Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-[#1b1e1e] border border-white/10 rounded-xs flex flex-col">
+                  <span className="font-technical text-[10px] uppercase text-neutral-400">Total Subscribers</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-white">{subscribers.length}</span>
+                    <span className="text-[10px] font-technical text-neutral-500">records</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#1b1e1e] border border-[#dfff00]/30 rounded-xs flex flex-col">
+                  <span className="font-technical text-[10px] uppercase text-[#dfff00]">Active Deliveries</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-[#dfff00]">
+                      {subscribers.filter((s) => s.status === 'ACTIVE').length}
+                    </span>
+                    <span className="text-[10px] font-technical text-[#dfff00]/70">live nodes</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#1b1e1e] border border-white/10 rounded-xs flex flex-col">
+                  <span className="font-technical text-[10px] uppercase text-neutral-400">Unsubscribed</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-neutral-300">
+                      {subscribers.filter((s) => s.status === 'UNSUBSCRIBED').length}
+                    </span>
+                    <span className="text-[10px] font-technical text-neutral-500">opted-out</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#1b1e1e] border border-white/10 rounded-xs flex flex-col">
+                  <span className="font-technical text-[10px] uppercase text-neutral-400">Telemetry Roster</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-cyan-400">
+                      {subscribers.filter((s) => s.status === 'ACTIVE').length + 1420}
+                    </span>
+                    <span className="text-[10px] font-technical text-cyan-500/70">nodes</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search, Filter & Action Bar */}
+              <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+                {/* Search */}
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                  <input
+                    type="text"
+                    value={subscriberSearch}
+                    onChange={(e) => setSubscriberSearch(e.target.value)}
+                    placeholder="Search by subscriber name or email..."
+                    className="w-full bg-[#1b1e1e] border border-white/15 pl-9 pr-3 py-1.5 text-xs font-technical text-white focus:outline-none focus:border-[#dfff00]/60 placeholder:text-neutral-500"
+                  />
+                  {subscriberSearch && (
+                    <button
+                      onClick={() => setSubscriberSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filters & Actions */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Topic Filter */}
+                  <select
+                    aria-label="Filter subscribers by interest stream"
+                    value={subscriberTopicFilter}
+                    onChange={(e) => setSubscriberTopicFilter(e.target.value)}
+                    className="bg-[#1b1e1e] border border-white/15 px-3 py-1.5 text-xs font-technical text-neutral-300 focus:outline-none focus:border-[#dfff00]/60"
+                  >
+                    <option value="All">All Streams</option>
+                    {SUBSCRIBER_TOPICS.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+
+                  {/* Status Pills */}
+                  <div className="flex border border-white/15 bg-[#1b1e1e]">
+                    <button
+                      onClick={() => setSubscriberStatusFilter('All')}
+                      className={`px-2.5 py-1 text-xs font-technical uppercase transition-colors cursor-pointer ${
+                        subscriberStatusFilter === 'All'
+                          ? 'bg-[#dfff00] text-[#121414] font-bold'
+                          : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      All ({subscribers.length})
+                    </button>
+                    <button
+                      onClick={() => setSubscriberStatusFilter('ACTIVE')}
+                      className={`px-2.5 py-1 text-xs font-technical uppercase transition-colors cursor-pointer ${
+                        subscriberStatusFilter === 'ACTIVE'
+                          ? 'bg-[#dfff00] text-[#121414] font-bold'
+                          : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      Active ({subscribers.filter((s) => s.status === 'ACTIVE').length})
+                    </button>
+                    <button
+                      onClick={() => setSubscriberStatusFilter('UNSUBSCRIBED')}
+                      className={`px-2.5 py-1 text-xs font-technical uppercase transition-colors cursor-pointer ${
+                        subscriberStatusFilter === 'UNSUBSCRIBED'
+                          ? 'bg-[#dfff00] text-[#121414] font-bold'
+                          : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      Opt-out ({subscribers.filter((s) => s.status === 'UNSUBSCRIBED').length})
+                    </button>
+                  </div>
+
+                  <div className="h-6 w-px bg-white/10 hidden sm:block" />
+
+                  {/* Export and Add buttons */}
+                  <button
+                    onClick={exportSubscribersCSV}
+                    className="px-2.5 py-1.5 bg-[#202424] hover:bg-[#282d2d] text-white border border-white/10 font-technical text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Export all subscribers as CSV"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#dfff00]" />
+                    <span>CSV</span>
+                  </button>
+
+                  <button
+                    onClick={exportSubscribersJSON}
+                    className="px-2.5 py-1.5 bg-[#202424] hover:bg-[#282d2d] text-white border border-white/10 font-technical text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Export all subscribers as JSON"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#dfff00]" />
+                    <span>JSON</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setNewSubscriberForm({
+                        name: '',
+                        email: '',
+                        topic: 'All Systems',
+                        status: 'ACTIVE',
+                      });
+                      setNewSubscriberMessage(null);
+                      setIsAddSubscriberModalOpen(true);
+                    }}
+                    className="px-3 py-1.5 bg-[#dfff00] text-[#121414] font-technical text-xs font-bold uppercase tracking-wider hover:bg-[#ccee00] flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Subscriber</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Subscriber Database Table */}
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
+              {subscribers.length === 0 ? (
+                <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed border-white/15 bg-[#161818]/60">
+                  <Mail className="w-8 h-8 text-neutral-500 mb-3" />
+                  <h3 className="text-white font-display font-bold text-base mb-1">No Subscribers Registered</h3>
+                  <p className="text-neutral-400 font-technical text-xs max-w-sm mb-4">
+                    The newsletter subscriber database is currently empty.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-[#171919] border border-white/10 rounded-xs overflow-x-auto shadow-lg">
+                  <table className="w-full text-left font-technical text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 bg-[#141616] text-neutral-400 uppercase text-[10px] tracking-wider">
+                        <th className="py-3 px-4">Subscriber Name</th>
+                        <th className="py-3 px-4">Dispatch Address</th>
+                        <th className="py-3 px-4">Stream Channel</th>
+                        <th className="py-3 px-4">Subscribed At</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {subscribers
+                        .filter((s) => {
+                          const q = subscriberSearch.toLowerCase().trim();
+                          const matchesSearch =
+                            !q ||
+                            s.name.toLowerCase().includes(q) ||
+                            s.email.toLowerCase().includes(q);
+                          const matchesTopic =
+                            subscriberTopicFilter === 'All' || s.topic === subscriberTopicFilter;
+                          const matchesStatus =
+                            subscriberStatusFilter === 'All' || s.status === subscriberStatusFilter;
+                          return matchesSearch && matchesTopic && matchesStatus;
+                        })
+                        .map((subscriber) => {
+                          const isActive = subscriber.status === 'ACTIVE';
+                          return (
+                            <tr
+                              key={subscriber.id}
+                              className="hover:bg-white/[0.02] transition-colors"
+                            >
+                              <td className="py-3 px-4 font-bold text-white">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-[#dfff00]/10 border border-[#dfff00]/30 flex items-center justify-center text-[10px] text-[#dfff00] font-bold shrink-0">
+                                    {subscriber.name.slice(0, 1).toUpperCase()}
+                                  </div>
+                                  <span>{subscriber.name}</span>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4 text-neutral-300">
+                                <div className="flex items-center gap-1.5">
+                                  <span>{subscriber.email}</span>
+                                  <button
+                                    onClick={() => handleCopyText(subscriber.email, subscriber.id)}
+                                    className="p-1 text-neutral-500 hover:text-[#dfff00] transition-colors cursor-pointer"
+                                    title="Copy email address"
+                                  >
+                                    {copiedText === subscriber.id ? (
+                                      <Check className="w-3 h-3 text-[#dfff00]" />
+                                    ) : (
+                                      <Copy className="w-3 h-3" />
+                                    )}
+                                  </button>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <span className="inline-block px-2 py-0.5 text-[10px] font-technical uppercase border rounded-xs text-cyan-300 border-cyan-500/30 bg-cyan-950/20">
+                                  {subscriber.topic}
+                                </span>
+                              </td>
+
+                              <td className="py-3 px-4 text-neutral-400 font-mono text-[11px]">
+                                {subscriber.subscribedAt}
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <button
+                                  onClick={() =>
+                                    updateSubscriberStatus(
+                                      subscriber.id,
+                                      isActive ? 'UNSUBSCRIBED' : 'ACTIVE'
+                                    )
+                                  }
+                                  className={`px-2 py-0.5 text-[10px] font-technical font-bold uppercase rounded-xs border transition-colors cursor-pointer flex items-center gap-1.5 ${
+                                    isActive
+                                      ? 'text-emerald-400 border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-900/30'
+                                      : 'text-neutral-400 border-neutral-600 bg-neutral-900/50 hover:bg-neutral-800'
+                                  }`}
+                                  title="Click to toggle status"
+                                >
+                                  <span
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      isActive ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'
+                                    }`}
+                                  />
+                                  <span>{subscriber.status}</span>
+                                </button>
+                              </td>
+
+                              <td className="py-3 px-4 text-right">
+                                <button
+                                  onClick={() => setSubscriberToDelete(subscriber)}
+                                  className="p-1.5 border border-white/10 hover:border-rose-500/50 text-neutral-400 hover:text-rose-400 font-technical text-xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                                  title="Delete Subscriber"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* PART 4: CONTACTS & INQUIRIES DATABASE */}
+        {/* ======================================================== */}
+        {activePart === 'contacts' && (
+          <div className="flex-1 flex flex-col overflow-hidden bg-[#121414]">
+            {/* Top Stat Summary & Controls Bar */}
+            <div className="border-b border-white/10 bg-[#161818] p-4 flex flex-col gap-4 shrink-0">
+              {/* Stat Metric Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-[#1b1e1e] border border-white/10 rounded-xs flex flex-col">
+                  <span className="font-technical text-[10px] uppercase text-neutral-400">Total Inquiries</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-white">{contacts.length}</span>
+                    <span className="text-[10px] font-technical text-neutral-500">messages</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#1b1e1e] border border-amber-500/40 rounded-xs flex flex-col shadow-[0_0_15px_rgba(251,191,36,0.1)]">
+                  <span className="font-technical text-[10px] uppercase text-amber-300 flex items-center gap-1.5 font-bold">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    Unread Messages
+                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-amber-300">
+                      {contacts.filter((c) => c.status === 'UNREAD').length}
+                    </span>
+                    <span className="text-[10px] font-technical text-amber-400/70">pending review</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#1b1e1e] border border-white/10 rounded-xs flex flex-col">
+                  <span className="font-technical text-[10px] uppercase text-neutral-400">Replied</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-emerald-400">
+                      {contacts.filter((c) => c.status === 'REPLIED').length}
+                    </span>
+                    <span className="text-[10px] font-technical text-emerald-500/70">resolved</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#1b1e1e] border border-white/10 rounded-xs flex flex-col">
+                  <span className="font-technical text-[10px] uppercase text-neutral-400">Archived</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="font-display text-2xl font-bold text-neutral-400">
+                      {contacts.filter((c) => c.status === 'ARCHIVED').length}
+                    </span>
+                    <span className="text-[10px] font-technical text-neutral-500">archived</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search, Filter & Action Bar */}
+              <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+                {/* Search */}
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                  <input
+                    type="text"
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    placeholder="Search messages by sender, email or keywords..."
+                    className="w-full bg-[#1b1e1e] border border-white/15 pl-9 pr-3 py-1.5 text-xs font-technical text-white focus:outline-none focus:border-[#dfff00]/60 placeholder:text-neutral-500"
+                  />
+                  {contactSearch && (
+                    <button
+                      onClick={() => setContactSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filters & Actions */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Status Filter Tabs */}
+                  <div className="flex border border-white/15 bg-[#1b1e1e]">
+                    {(['All', 'UNREAD', 'READ', 'REPLIED', 'ARCHIVED'] as const).map((st) => {
+                      const count = st === 'All' ? contacts.length : contacts.filter((c) => c.status === st).length;
+                      return (
+                        <button
+                          key={st}
+                          onClick={() => setContactStatusFilter(st)}
+                          className={`px-2.5 py-1 text-xs font-technical uppercase transition-colors cursor-pointer ${
+                            contactStatusFilter === st
+                              ? 'bg-[#dfff00] text-[#121414] font-bold'
+                              : 'text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          {st === 'All' ? 'All' : st} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="h-6 w-px bg-white/10 hidden sm:block" />
+
+                  {/* Mark All Unread as Read */}
+                  {contacts.some((c) => c.status === 'UNREAD') && (
+                    <button
+                      onClick={() => {
+                        contacts
+                          .filter((c) => c.status === 'UNREAD')
+                          .forEach((c) => updateContactStatus(c.id, 'READ'));
+                      }}
+                      className="px-2.5 py-1.5 bg-[#202424] hover:bg-[#282d2d] text-amber-300 border border-amber-500/30 font-technical text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title="Mark all unread messages as read"
+                    >
+                      <CheckCheck className="w-3.5 h-3.5" />
+                      <span>Mark All Read</span>
+                    </button>
+                  )}
+
+                  {/* Export buttons */}
+                  <button
+                    onClick={exportContactsCSV}
+                    className="px-2.5 py-1.5 bg-[#202424] hover:bg-[#282d2d] text-white border border-white/10 font-technical text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Export contacts as CSV"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#dfff00]" />
+                    <span>CSV</span>
+                  </button>
+
+                  <button
+                    onClick={exportContactsJSON}
+                    className="px-2.5 py-1.5 bg-[#202424] hover:bg-[#282d2d] text-white border border-white/10 font-technical text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Export contacts as JSON"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#dfff00]" />
+                    <span>JSON</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Contacts Database List */}
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3">
+              {contacts.length === 0 ? (
+                <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed border-white/15 bg-[#161818]/60">
+                  <MessageSquare className="w-8 h-8 text-neutral-500 mb-3" />
+                  <h3 className="text-white font-display font-bold text-base mb-1">No Inquiries Found</h3>
+                  <p className="text-neutral-400 font-technical text-xs max-w-sm mb-4">
+                    The contact messages database is currently empty.
+                  </p>
+                </div>
+              ) : (
+                contacts
+                  .filter((c) => {
+                    const q = contactSearch.toLowerCase().trim();
+                    const matchesSearch =
+                      !q ||
+                      c.name.toLowerCase().includes(q) ||
+                      c.email.toLowerCase().includes(q) ||
+                      c.message.toLowerCase().includes(q) ||
+                      (c.notes && c.notes.toLowerCase().includes(q));
+                    const matchesStatus =
+                      contactStatusFilter === 'All' || c.status === contactStatusFilter;
+                    return matchesSearch && matchesStatus;
+                  })
+                  .map((contact) => {
+                    const isUnread = contact.status === 'UNREAD';
+                    const isReplied = contact.status === 'REPLIED';
+                    const isArchived = contact.status === 'ARCHIVED';
+
+                    return (
+                      <div
+                        key={contact.id}
+                        className={`p-4 sm:p-5 rounded-xs border transition-all ${
+                          isUnread
+                            ? 'bg-[#191c1c] border-amber-500/50 shadow-[0_0_15px_rgba(251,191,36,0.06)]'
+                            : 'bg-[#151717] border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3 mb-3">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                                isUnread
+                                  ? 'bg-amber-400 animate-ping'
+                                  : isReplied
+                                  ? 'bg-emerald-400'
+                                  : isArchived
+                                  ? 'bg-neutral-600'
+                                  : 'bg-neutral-400'
+                              }`}
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-display text-white font-bold text-sm tracking-wide">
+                                  {contact.name}
+                                </h4>
+                                <span
+                                  className={`text-[9px] font-technical uppercase px-1.5 py-0.2 rounded-xs font-bold border ${
+                                    isUnread
+                                      ? 'text-amber-300 border-amber-500/50 bg-amber-500/10'
+                                      : isReplied
+                                      ? 'text-emerald-300 border-emerald-500/50 bg-emerald-500/10'
+                                      : isArchived
+                                      ? 'text-neutral-400 border-neutral-600 bg-neutral-800'
+                                      : 'text-neutral-300 border-white/20 bg-white/5'
+                                  }`}
+                                >
+                                  {contact.status}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs font-technical text-neutral-400 mt-0.5">
+                                <span>{contact.email}</span>
+                                <button
+                                  onClick={() => handleCopyText(contact.email, contact.id)}
+                                  className="text-neutral-500 hover:text-[#dfff00] transition-colors cursor-pointer"
+                                  title="Copy email"
+                                >
+                                  {copiedText === contact.id ? (
+                                    <Check className="w-3 h-3 text-[#dfff00]" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 font-mono text-xs text-neutral-400">
+                            <span>{contact.submittedAt}</span>
+                          </div>
+                        </div>
+
+                        {/* Message Preview */}
+                        <p className="text-neutral-200 text-xs sm:text-sm leading-relaxed mb-3 font-sans line-clamp-3 bg-[#111313]/60 p-3 rounded-xs border border-white/5">
+                          {contact.message}
+                        </p>
+
+                        {/* Internal Notes Preview if any */}
+                        {contact.notes && (
+                          <div className="mb-3 px-3 py-1.5 bg-[#1e2222] border border-cyan-500/30 rounded-xs flex items-center gap-2 text-[11px] font-technical text-cyan-300">
+                            <FileText className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate"><strong>Admin Note:</strong> {contact.notes}</span>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/5 font-technical text-xs">
+                          <div className="flex items-center gap-1.5">
+                            {/* Quick Status Buttons */}
+                            {contact.status !== 'READ' && (
+                              <button
+                                onClick={() => updateContactStatus(contact.id, 'READ')}
+                                className="px-2 py-1 bg-[#1f2222] hover:bg-[#252929] text-neutral-300 border border-white/10 rounded-xs transition-colors cursor-pointer"
+                              >
+                                Mark Read
+                              </button>
+                            )}
+                            {contact.status !== 'REPLIED' && (
+                              <button
+                                onClick={() => updateContactStatus(contact.id, 'REPLIED')}
+                                className="px-2 py-1 bg-[#1f2222] hover:bg-[#252929] text-emerald-300 border border-emerald-500/30 rounded-xs transition-colors cursor-pointer"
+                              >
+                                Mark Replied
+                              </button>
+                            )}
+                            {contact.status !== 'ARCHIVED' && (
+                              <button
+                                onClick={() => updateContactStatus(contact.id, 'ARCHIVED')}
+                                className="px-2 py-1 bg-[#1f2222] hover:bg-[#252929] text-neutral-400 border border-white/10 rounded-xs transition-colors cursor-pointer"
+                              >
+                                Archive
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={`mailto:${contact.email}?subject=Re: Your message to Jeet Patel`}
+                              onClick={() => {
+                                if (contact.status === 'UNREAD') {
+                                  updateContactStatus(contact.id, 'REPLIED');
+                                }
+                              }}
+                              className="px-3 py-1 bg-[#202424] hover:bg-[#292e2e] text-[#dfff00] border border-[#dfff00]/30 rounded-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Send className="w-3 h-3" />
+                              <span>Reply via Email</span>
+                            </a>
+
+                            <button
+                              onClick={() => {
+                                setSelectedContactForModal(contact);
+                                setContactNotesDraft(contact.notes || '');
+                                if (contact.status === 'UNREAD') {
+                                  updateContactStatus(contact.id, 'READ');
+                                }
+                              }}
+                              className="px-3 py-1 bg-[#dfff00] text-[#121414] font-bold uppercase tracking-wider hover:bg-[#ccee00] rounded-xs transition-colors cursor-pointer"
+                            >
+                              View Details
+                            </button>
+
+                            <button
+                              onClick={() => setContactToDelete(contact)}
+                              className="p-1 border border-white/10 hover:border-rose-500/50 text-neutral-400 hover:text-rose-400 rounded-xs transition-colors cursor-pointer"
+                              title="Delete Message"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ======================================================== */}
@@ -1764,6 +2826,358 @@ export const AdminPanel: React.FC = () => {
               </button>
               <button
                 onClick={confirmDeleteProject}
+                className="px-4 py-1.5 bg-rose-600 text-white font-bold hover:bg-rose-500 cursor-pointer"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Details & Notes Inspector Modal */}
+      {selectedContactForModal && (
+        <div className="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-4">
+          <div className="bg-[#171919] border border-cyan-500/40 w-full max-w-2xl p-6 space-y-5 font-sans text-neutral-200 max-h-[90vh] overflow-y-auto rounded-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h3 className="text-white font-display font-bold text-lg flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-[#dfff00]" />
+                  <span>Inquiry Transmission Inspector</span>
+                </h3>
+                <span className="font-mono text-xs text-neutral-400">
+                  ID: {selectedContactForModal.id} // Submitted: {selectedContactForModal.submittedAt}
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedContactForModal(null)}
+                className="text-neutral-400 hover:text-white cursor-pointer p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Sender Metadata Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-[#131515] border border-white/10 rounded-xs font-technical text-xs">
+              <div>
+                <span className="text-neutral-500 uppercase block text-[10px]">Sender Name</span>
+                <span className="text-white font-bold text-sm">{selectedContactForModal.name}</span>
+              </div>
+              <div>
+                <span className="text-neutral-500 uppercase block text-[10px]">Email Address</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-cyan-400 font-mono">{selectedContactForModal.email}</span>
+                  <button
+                    onClick={() => handleCopyText(selectedContactForModal.email, 'modal-email')}
+                    className="text-neutral-400 hover:text-white cursor-pointer"
+                    title="Copy email"
+                  >
+                    {copiedText === 'modal-email' ? <Check className="w-3.5 h-3.5 text-[#dfff00]" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Selector */}
+            <div className="space-y-1.5 font-technical text-xs">
+              <label className="text-neutral-400 uppercase tracking-wider block font-bold">
+                Transmission Status
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['UNREAD', 'READ', 'REPLIED', 'ARCHIVED'] as ContactStatus[]).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => {
+                      updateContactStatus(selectedContactForModal.id, st);
+                      setSelectedContactForModal((prev) => (prev ? { ...prev, status: st } : null));
+                    }}
+                    className={`py-1.5 px-2 border rounded-xs uppercase tracking-wider text-[11px] font-bold transition-all cursor-pointer ${
+                      selectedContactForModal.status === st
+                        ? 'border-[#dfff00] bg-[#dfff00] text-[#121414]'
+                        : 'border-white/10 text-neutral-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Complete Message Content */}
+            <div className="space-y-1.5 font-technical text-xs">
+              <label className="text-neutral-400 uppercase tracking-wider block font-bold">
+                Full Message Payload
+              </label>
+              <div className="p-4 bg-[#111313] border border-white/15 rounded-xs text-neutral-100 font-sans text-sm leading-relaxed whitespace-pre-wrap select-text">
+                {selectedContactForModal.message}
+              </div>
+            </div>
+
+            {/* Internal Notes */}
+            <div className="space-y-1.5 font-technical text-xs">
+              <label className="text-neutral-400 uppercase tracking-wider block font-bold flex items-center justify-between">
+                <span>Internal Admin Notes</span>
+                <span className="text-[10px] text-neutral-500 lowercase">(private to admin)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={contactNotesDraft}
+                  onChange={(e) => setContactNotesDraft(e.target.value)}
+                  placeholder="e.g. Recruiter for ML position. Scheduled call for Friday."
+                  className="flex-1 bg-[#1b1e1e] border border-white/15 px-3 py-1.5 text-white focus:outline-none focus:border-[#dfff00]"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateContactStatus(selectedContactForModal.id, selectedContactForModal.status, contactNotesDraft);
+                    setSelectedContactForModal((prev) => (prev ? { ...prev, notes: contactNotesDraft } : null));
+                  }}
+                  className="px-3 py-1.5 bg-[#252a2a] hover:bg-[#303636] border border-white/20 text-white font-bold cursor-pointer"
+                >
+                  Save Note
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10 font-technical text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setContactToDelete(selectedContactForModal);
+                  setSelectedContactForModal(null);
+                }}
+                className="px-3 py-2 border border-rose-500/30 text-rose-400 hover:bg-rose-950/20 rounded-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Inquiry</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={`mailto:${selectedContactForModal.email}?subject=Re: Inquiring from Jeet Patel Portfolio`}
+                  onClick={() => {
+                    updateContactStatus(selectedContactForModal.id, 'REPLIED');
+                  }}
+                  className="px-4 py-2 bg-[#dfff00] text-[#121414] font-bold uppercase tracking-wider hover:bg-[#ccee00] rounded-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Reply via Email Client</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedContactForModal(null)}
+                  className="px-4 py-2 border border-white/15 text-neutral-300 hover:text-white rounded-xs cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Subscriber Modal */}
+      {isAddSubscriberModalOpen && (
+        <div className="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-4">
+          <div className="bg-[#171919] border border-[#dfff00]/40 w-full max-w-md p-6 space-y-4 font-sans text-neutral-200 rounded-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-white font-display font-bold text-base flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#dfff00]" />
+                <span>Register Newsletter Subscriber</span>
+              </h3>
+              <button
+                onClick={() => setIsAddSubscriberModalOpen(false)}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const res = addSubscriber(newSubscriberForm);
+                if (res.success) {
+                  setIsAddSubscriberModalOpen(false);
+                } else {
+                  setNewSubscriberMessage({ success: false, text: res.message });
+                }
+              }}
+              className="space-y-4 font-technical text-xs"
+            >
+              <div>
+                <label className="block text-white/80 mb-1 uppercase tracking-wider font-bold">
+                  Subscriber Name
+                </label>
+                <input
+                  type="text"
+                  value={newSubscriberForm.name}
+                  onChange={(e) => setNewSubscriberForm({ ...newSubscriberForm, name: e.target.value })}
+                  placeholder="e.g. Dr. Alex Mercer"
+                  className="w-full bg-[#1b1e1e] border border-white/15 px-3 py-2 text-white focus:outline-none focus:border-[#dfff00]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/80 mb-1 uppercase tracking-wider font-bold">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={newSubscriberForm.email}
+                  onChange={(e) => setNewSubscriberForm({ ...newSubscriberForm, email: e.target.value })}
+                  placeholder="alex.mercer@deeptech.io"
+                  className="w-full bg-[#1b1e1e] border border-white/15 px-3 py-2 text-white focus:outline-none focus:border-[#dfff00]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/80 mb-1 uppercase tracking-wider font-bold">
+                  Topic / Dispatch Stream
+                </label>
+                <select
+                  value={newSubscriberForm.topic}
+                  onChange={(e) =>
+                    setNewSubscriberForm({
+                      ...newSubscriberForm,
+                      topic: e.target.value as TopicInterest,
+                    })
+                  }
+                  className="w-full bg-[#1b1e1e] border border-white/15 px-3 py-2 text-white focus:outline-none focus:border-[#dfff00]"
+                >
+                  {SUBSCRIBER_TOPICS.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-white/80 mb-1 uppercase tracking-wider font-bold">
+                  Status
+                </label>
+                <select
+                  value={newSubscriberForm.status}
+                  onChange={(e) =>
+                    setNewSubscriberForm({
+                      ...newSubscriberForm,
+                      status: e.target.value as 'ACTIVE' | 'UNSUBSCRIBED',
+                    })
+                  }
+                  className="w-full bg-[#1b1e1e] border border-white/15 px-3 py-2 text-white focus:outline-none focus:border-[#dfff00]"
+                >
+                  <option value="ACTIVE">ACTIVE (Delivering)</option>
+                  <option value="UNSUBSCRIBED">UNSUBSCRIBED</option>
+                </select>
+              </div>
+
+              {newSubscriberMessage && (
+                <div className="p-2.5 bg-rose-950/40 border border-rose-500/50 text-rose-300 text-xs">
+                  {newSubscriberMessage.text}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10 font-technical text-xs">
+                <button
+                  type="button"
+                  onClick={() => setIsAddSubscriberModalOpen(false)}
+                  className="px-4 py-1.5 border border-white/15 text-white/80 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#dfff00] text-[#121414] font-bold uppercase tracking-wider hover:bg-[#ccee00] cursor-pointer"
+                >
+                  Add Subscriber
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Subscriber Confirmation Modal */}
+      {subscriberToDelete && (
+        <div className="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-4">
+          <div className="bg-[#171919] border border-rose-500/50 w-full max-w-md p-6 space-y-4 font-sans text-neutral-200 rounded-xs">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-white font-display font-bold text-base flex items-center gap-2 text-rose-400">
+                <Trash2 className="w-4 h-4" />
+                <span>Remove Subscriber</span>
+              </h3>
+              <button
+                onClick={() => setSubscriberToDelete(null)}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="font-technical text-xs text-neutral-300 leading-relaxed">
+              Are you sure you want to remove subscriber <strong className="text-white">&quot;{subscriberToDelete.email}&quot;</strong> ({subscriberToDelete.name}) from the newsletter database?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10 font-technical text-xs">
+              <button
+                onClick={() => setSubscriberToDelete(null)}
+                className="px-4 py-1.5 border border-white/15 text-white/80 hover:text-white cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteSubscriber(subscriberToDelete.id);
+                  setSubscriberToDelete(null);
+                }}
+                className="px-4 py-1.5 bg-rose-600 text-white font-bold hover:bg-rose-500 cursor-pointer"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Contact Confirmation Modal */}
+      {contactToDelete && (
+        <div className="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-4">
+          <div className="bg-[#171919] border border-rose-500/50 w-full max-w-md p-6 space-y-4 font-sans text-neutral-200 rounded-xs">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-white font-display font-bold text-base flex items-center gap-2 text-rose-400">
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Message Transmission</span>
+              </h3>
+              <button
+                onClick={() => setContactToDelete(null)}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="font-technical text-xs text-neutral-300 leading-relaxed">
+              Are you sure you want to permanently delete inquiry from <strong className="text-white">&quot;{contactToDelete.name}&quot;</strong> ({contactToDelete.email})?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10 font-technical text-xs">
+              <button
+                onClick={() => setContactToDelete(null)}
+                className="px-4 py-1.5 border border-white/15 text-white/80 hover:text-white cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteContact(contactToDelete.id);
+                  setContactToDelete(null);
+                }}
                 className="px-4 py-1.5 bg-rose-600 text-white font-bold hover:bg-rose-500 cursor-pointer"
               >
                 Confirm Delete

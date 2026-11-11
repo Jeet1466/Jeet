@@ -12,8 +12,8 @@ interface KineticDesktop3DProps {
 }
 
 // Module-level reusable math objects for zero garbage collection
-const _camStartPos = new THREE.Vector3(0.0, 1.58, 2.70);
-const _camStartLook = new THREE.Vector3(0, 1.12, -0.15);
+const _camStartPos = new THREE.Vector3(2.4, 1.7, 2.2);
+const _camStartLook = new THREE.Vector3(0, 1.15, -0.15);
 const _camScreenPos = new THREE.Vector3(0.0, 1.35, -0.10);
 const _camScreenLook = new THREE.Vector3(0.0, 1.35, -0.44);
 const _currentTargetPos = new THREE.Vector3();
