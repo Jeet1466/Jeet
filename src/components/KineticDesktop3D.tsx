@@ -2255,7 +2255,8 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
     // ==========================================
     // 9. ANIMATION & RENDER LOOP (OPTIMIZED 60FPS)
     // ==========================================
-    const clock = new THREE.Clock();
+    const animStartTime = performance.now();
+    let animLastTime = animStartTime;
     let frameId = 0;
     let isDisposed = false;
     let isSceneVisible = true;
@@ -2283,8 +2284,10 @@ export const KineticDesktop3D: React.FC<KineticDesktop3DProps> = ({
         return;
       }
 
-      const delta = Math.min(clock.getDelta(), 0.05);
-      const elapsedTime = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = Math.min((now - animLastTime) / 1000, 0.05);
+      const elapsedTime = (now - animStartTime) / 1000;
+      animLastTime = now;
 
       // Spin PC fans smoothly
       pcFansRef.current.forEach((fan, idx) => {

@@ -209,11 +209,14 @@ export const FloatingBot: React.FC<FloatingBotProps> = ({ onNavigateToProjects }
 
     // 5. Animation Render Loop
     let frameId = 0;
-    const clock = new THREE.Clock();
+    const startTime = performance.now();
+    let lastTime = startTime;
 
     const tick = () => {
-      const delta = Math.min(clock.getDelta(), 0.05);
-      const elapsedTime = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = Math.min((now - lastTime) / 1000, 0.05);
+      const elapsedTime = (now - startTime) / 1000;
+      lastTime = now;
 
       // Gyroscope orbital rings spin continuously
       ringsGroup.rotation.x += delta * 1.6;
