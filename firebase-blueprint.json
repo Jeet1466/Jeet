@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "Portfolio architecture project showcasing engineering systems",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "tagline": { "type": "string" },
+        "description": { "type": "string" },
+        "spec": { "type": "string" },
+        "category": { "type": "string" },
+        "language": { "type": "string" },
+        "tags": { "type": "array" },
+        "githubStars": { "type": "number" },
+        "githubForks": { "type": "number" },
+        "repoUrl": { "type": "string" },
+        "demoUrl": { "type": "string" },
+        "accent": { "type": "string" },
+        "revisionDate": { "type": "string" },
+        "order": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "isProtected": { "type": "boolean" },
+        "source": { "type": "string" }
+      },
+      "required": ["title", "tagline", "category", "isActive"]
+    },
+    "NewsletterSubscriber": {
+      "title": "NewsletterSubscriber",
+      "description": "Subscriber to engineering dispatch newsletter",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "stream": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "required": ["email", "status", "createdAt"]
+    },
+    "ContactInquiry": {
+      "title": "ContactInquiry",
+      "description": "Contact form inquiry sent from portfolio visitors",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" },
+        "adminNote": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "email", "message", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Architectural portfolio projects visible to visitors and managed by admin"
+    },
+    "/newsletter_subscribers/{subscriberId}": {
+      "schema": "NewsletterSubscriber",
+      "description": "Centralized newsletter subscribers list"
+    },
+    "/contact_inquiries/{inquiryId}": {
+      "schema": "ContactInquiry",
+      "description": "Centralized contact inquiries from visitors"
+    }
+  }
+}

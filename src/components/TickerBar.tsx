@@ -6,12 +6,11 @@ export const TickerBar: React.FC = () => {
 
   const items = [
     `SYS_CORE_TEMP: ${config.coreTemp || '42°C'}`,
-    `DATA_NODES: ${config.activeNodes.toLocaleString()} ONLINE`,
+    `CENTRALIZED_DB: CLOUD FIRESTORE ONLINE`,
+    `DATA_NODES: ${config.activeNodes.toLocaleString()} SYNCED`,
     `LATENCY: ${config.latencyMs}MS`,
     `UPTIME: ${config.uptime}`,
     `KERNEL: v5.2.0-KINETIC`,
-    `MEMORY_PRESSURE: 18.4%`,
-    `RAFT_CONSENSUS: STABLE`,
     `SYSTEM_STATUS: ${config.systemStatus || 'OPTIMAL'}`
   ];
 

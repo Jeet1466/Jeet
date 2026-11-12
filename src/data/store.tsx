@@ -1,6 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Project, Subscriber, NewsletterCampaign, SystemConfig, ScreenMode, TopicInterest, ContactMessage, ContactStatus } from '../types';
 import { INITIAL_PROJECTS, INITIAL_SUBSCRIBERS, INITIAL_CAMPAIGNS, INITIAL_SYSTEM_CONFIG, INITIAL_CONTACTS } from './seedData';
+import {
+  listenToProjects,
+  listenToSubscribers,
+  listenToContacts,
+  syncProjectToCloud,
+  deleteProjectFromCloud,
+  syncSubscriberToCloud,
+  deleteSubscriberFromCloud,
+  syncContactToCloud,
+  deleteContactFromCloud
+} from '../lib/firestoreService';
+import { isFirebaseConfigured } from '../lib/firebase';
 
 interface AppContextType {
   screen: ScreenMode;
@@ -11,6 +23,11 @@ interface AppContextType {
   contacts: ContactMessage[];
   config: SystemConfig;
   
+  // Database status
+  dbStatus: 'connected' | 'syncing' | 'offline';
+  lastSyncedAt: string;
+  isCloudConnected: boolean;
+
   // Project actions
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   addProject: (project: Omit<Project, 'id' | 'updatedAt'>) => void;
@@ -62,6 +79,10 @@ const STORAGE_KEYS = {
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [screen, setScreen] = useState<ScreenMode>('portfolio');
+  const [dbStatus, setDbStatus] = useState<'connected' | 'syncing' | 'offline'>(
+    isFirebaseConfigured ? 'syncing' : 'offline'
+  );
+  const [lastSyncedAt, setLastSyncedAt] = useState<string>(new Date().toLocaleTimeString());
 
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
@@ -122,7 +143,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
   const [is3DFullscreen, setIs3DFullscreen] = useState(false);
 
-  // Sync to local storage
+  // ==========================================
+  // REAL-TIME FIRESTORE CENTRALIZED DB LISTENERS
+  // ==========================================
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setDbStatus('offline');
+      return;
+    }
+
+    setDbStatus('syncing');
+
+    const unsubscribeProjects = listenToProjects(
+      cloudProjects => {
+        if (cloudProjects.length > 0) {
+          setProjects(cloudProjects);
+          setDbStatus('connected');
+          setLastSyncedAt(new Date().toLocaleTimeString());
+        }
+      },
+      () => setDbStatus('offline')
+    );
+
+    const unsubscribeSubscribers = listenToSubscribers(
+      cloudSubscribers => {
+        if (cloudSubscribers.length > 0) {
+          setSubscribers(cloudSubscribers);
+          setDbStatus('connected');
+          setLastSyncedAt(new Date().toLocaleTimeString());
+        }
+      },
+      () => setDbStatus('offline')
+    );
+
+    const unsubscribeContacts = listenToContacts(
+      cloudContacts => {
+        if (cloudContacts.length > 0) {
+          setContacts(cloudContacts);
+          setDbStatus('connected');
+          setLastSyncedAt(new Date().toLocaleTimeString());
+        }
+      },
+      () => setDbStatus('offline')
+    );
+
+    return () => {
+      unsubscribeProjects();
+      unsubscribeSubscribers();
+      unsubscribeContacts();
+    };
+  }, []);
+
+  // Sync to local storage for instant offline cache and resilience
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
@@ -166,12 +238,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Project CRUD & Selection
   const toggleProjectSelection = (id: string) => {
     setProjects(prev =>
-      prev.map(p => (p.id === id ? { ...p, selected: p.selected === false ? true : false } : p))
+      prev.map(p => {
+        if (p.id === id) {
+          const updated = { ...p, selected: p.selected === false ? true : false };
+          syncProjectToCloud(updated);
+          return updated;
+        }
+        return p;
+      })
     );
   };
 
   const selectAllProjects = (selected: boolean) => {
-    setProjects(prev => prev.map(p => ({ ...p, selected })));
+    setProjects(prev => {
+      const updated = prev.map(p => ({ ...p, selected }));
+      updated.forEach(p => syncProjectToCloud(p));
+      return updated;
+    });
   };
 
   // Project CRUD
@@ -183,19 +266,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       source: projectData.source || 'manual'
     };
     setProjects(prev => [newProject, ...prev]);
+    syncProjectToCloud(newProject);
   };
 
   const updateProject = (id: string, updates: Partial<Project>) => {
     setProjects(prev =>
-      prev.map(p => (p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString().split('T')[0] } : p))
+      prev.map(p => {
+        if (p.id === id) {
+          const updated = { ...p, ...updates, updatedAt: new Date().toISOString().split('T')[0] };
+          syncProjectToCloud(updated);
+          return updated;
+        }
+        return p;
+      })
     );
     if (selectedProject?.id === id) {
-      setSelectedProject(prev => prev ? { ...prev, ...updates } : null);
+      setSelectedProject(prev => (prev ? { ...prev, ...updates } : null));
     }
   };
 
   const deleteProject = (id: string) => {
     setProjects(prev => prev.filter(p => p.id !== id));
+    deleteProjectFromCloud(id);
     if (selectedProject?.id === id) {
       setSelectedProject(null);
     }
@@ -203,7 +295,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleFeatured = (id: string) => {
     setProjects(prev =>
-      prev.map(p => (p.id === id ? { ...p, featured: !p.featured } : p))
+      prev.map(p => {
+        if (p.id === id) {
+          const updated = { ...p, featured: !p.featured };
+          syncProjectToCloud(updated);
+          return updated;
+        }
+        return p;
+      })
     );
   };
 
@@ -228,6 +327,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setSubscribers(prev => [newSub, ...prev]);
+    syncSubscriberToCloud(newSub);
     return { success: true, message: 'NODE_INITIALIZED: Connected to Kinetic Dispatch protocol' };
   };
 
@@ -251,17 +351,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setSubscribers(prev => [newSub, ...prev]);
+    syncSubscriberToCloud(newSub);
     return { success: true, message: 'Subscriber added successfully' };
   };
 
   const updateSubscriberStatus = (id: string, status: 'ACTIVE' | 'UNSUBSCRIBED') => {
     setSubscribers(prev =>
-      prev.map(s => (s.id === id ? { ...s, status } : s))
+      prev.map(s => {
+        if (s.id === id) {
+          const updated = { ...s, status };
+          syncSubscriberToCloud(updated);
+          return updated;
+        }
+        return s;
+      })
     );
   };
 
   const deleteSubscriber = (id: string) => {
     setSubscribers(prev => prev.filter(s => s.id !== id));
+    deleteSubscriberFromCloud(id);
   };
 
   // Contact actions
@@ -285,17 +394,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setContacts(prev => [newContact, ...prev]);
+    syncContactToCloud(newContact);
     return { id: newContact.id, success: true, message: 'Inquiry received and logged to database.' };
   };
 
   const updateContactStatus = (id: string, status: ContactStatus, notes?: string) => {
     setContacts(prev =>
-      prev.map(c => (c.id === id ? { ...c, status, notes: notes !== undefined ? notes : c.notes } : c))
+      prev.map(c => {
+        if (c.id === id) {
+          const updated = { ...c, status, notes: notes !== undefined ? notes : c.notes };
+          syncContactToCloud(updated);
+          return updated;
+        }
+        return c;
+      })
     );
   };
 
   const deleteContact = (id: string) => {
     setContacts(prev => prev.filter(c => c.id !== id));
+    deleteContactFromCloud(id);
   };
 
   const sendCampaign = (data: { subject: string; previewText: string; content: string; targetTopic: TopicInterest | 'All' }) => {
@@ -352,6 +470,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         campaigns,
         contacts,
         config,
+        dbStatus,
+        lastSyncedAt,
+        isCloudConnected: isFirebaseConfigured,
         addProject,
         updateProject,
         deleteProject,

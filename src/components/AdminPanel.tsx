@@ -127,6 +127,9 @@ export const AdminPanel: React.FC = () => {
     deleteContact,
     setIsAdminOpen,
     setScreen,
+    dbStatus,
+    lastSyncedAt,
+    isCloudConnected,
   } = useApp();
 
   // Admin Authentication State (Passcode: 845887)
@@ -944,6 +947,30 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-xs text-[11px] font-technical">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                dbStatus === 'connected'
+                  ? 'bg-[#dfff00] shadow-[0_0_8px_#dfff00]'
+                  : dbStatus === 'syncing'
+                  ? 'bg-amber-400 animate-pulse'
+                  : 'bg-red-400'
+              }`}
+            />
+            <span className="text-white/60">CENTRALIZED DB:</span>
+            <span
+              className={`font-bold ${
+                dbStatus === 'connected'
+                  ? 'text-[#dfff00]'
+                  : dbStatus === 'syncing'
+                  ? 'text-amber-400'
+                  : 'text-red-400'
+              }`}
+            >
+              {dbStatus === 'connected' ? 'FIRESTORE CLOUD' : dbStatus.toUpperCase()}
+            </span>
+          </div>
+
           <div className="hidden lg:flex items-center gap-2 text-xs font-technical text-neutral-400">
             <span>ACTIVE ON PORTFOLIO:</span>
             <span className="text-[#dfff00] font-bold">

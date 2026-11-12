@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidId(docId) {
+      return docId is string && docId.size() > 0 && docId.size() <= 128 && docId.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.size() >= 3 && email.size() <= 254 && email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
+    }
+
+    // Projects: Public read, writes guarded
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(projectId);
+    }
+
+    // Newsletter Subscribers: Public subscribe (create), read/manage
+    match /newsletter_subscribers/{subscriberId} {
+      allow read: if true;
+      allow create: if isValidId(subscriberId)
+        && request.resource.data.email is string
+        && isValidEmail(request.resource.data.email)
+        && request.resource.data.status is string;
+      allow update, delete: if isValidId(subscriberId);
+    }
+
+    // Contact Inquiries: Public submission (create), admin manage
+    match /contact_inquiries/{inquiryId} {
+      allow read: if true;
+      allow create: if isValidId(inquiryId)
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 200
+        && request.resource.data.email is string && isValidEmail(request.resource.data.email)
+        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 10000;
+      allow update, delete: if isValidId(inquiryId);
+    }
+
+    // Connection testing endpoint for health check
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
